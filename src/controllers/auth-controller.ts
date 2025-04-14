@@ -3,12 +3,18 @@ import { zValidator } from "@hono/zod-validator";
 import { UserZodSchema } from "@/schemas/user-schema.js";
 import userService from "@/services/user-service.js";
 import logger from "@/utils/logger.js";
-import { setSignedCookie } from "hono/cookie";
-import { ENV } from "@/configs/env-config.js";
+import { z } from "zod";
+import { setRefreshCookie } from "@/configs/cookie-options.js";
 
 const app = new Hono();
 
-app.get("/register", zValidator("json", UserZodSchema), async (c) => {
+const UserLoginZodSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+
+// register users
+app.post("/register", zValidator("json", UserZodSchema), async (c) => {
   const userDetails = c.req.valid("json");
 
   try {
@@ -18,7 +24,7 @@ app.get("/register", zValidator("json", UserZodSchema), async (c) => {
       return c.json(
         {
           success: false,
-          message: "User with email already exists",
+          message: "User with this email already exists",
         },
         409
       );
@@ -35,14 +41,23 @@ app.get("/register", zValidator("json", UserZodSchema), async (c) => {
       user._id
     );
 
-    await userService.updateRefreshToken(user._id, refreshToken);
+    const updatedUser = await userService.updateRefreshToken(
+      user._id,
+      refreshToken
+    );
 
-    await setSignedCookie(c, "session", refreshToken, ENV.COOKIE_SECRET);
+    if (!updatedUser) {
+      logger.error("Failed to update refresh token");
+    }
+
+    await setRefreshCookie(c, refreshToken);
+
+    logger.trace(`User ${user.firstname} has been added to the database`);
 
     return c.json(
       {
         success: true,
-        message: "Registeration successful",
+        message: "Registration successful",
         data: user,
         accessToken,
       },
@@ -51,10 +66,78 @@ app.get("/register", zValidator("json", UserZodSchema), async (c) => {
   } catch (error) {
     logger.error(
       error instanceof Error ? error.message : error,
-      "An error occured while registering user: "
+      "An error occurred while registering user: "
     );
 
-    return c.json({ message: "An unexpected error occured" }, 500);
+    return c.json(
+      {
+        success: false,
+        message: "An unexpected error occurred",
+      },
+      500
+    );
+  }
+});
+
+//login users
+app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
+  const { email, password } = c.req.valid("json");
+
+  try {
+    const user = await userService.findByEmail(email);
+
+    if (!user) {
+      return c.json(
+        {
+          success: false,
+          message: "Incorrect credentials",
+        },
+        401
+      );
+    }
+
+    const isPasswordMatch = await user.comparePassword(password);
+
+    if (!isPasswordMatch) {
+      return c.json(
+        {
+          success: false,
+          message: "Incorrect credentials",
+        },
+        401
+      );
+    }
+
+    const { accessToken, refreshToken } = await userService.getAuthTokens(
+      user._id
+    );
+
+    setRefreshCookie(c, refreshToken);
+
+    logger.trace(`User ${user.firstname} has been logged in`);
+
+    return c.json(
+      {
+        success: true,
+        message: "Login Successful",
+        data: user,
+        accessToken,
+      },
+      200
+    );
+  } catch (error) {
+    logger.error(
+      error instanceof Error ? error.message : error,
+      "An error occurred while logging in user: "
+    );
+
+    return c.json(
+      {
+        success: false,
+        message: "An unexpected error occurred",
+      },
+      500
+    );
   }
 });
 

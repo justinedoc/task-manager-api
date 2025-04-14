@@ -11,6 +11,10 @@ class UserService {
     return User.exists({ email });
   }
 
+  async findByEmail(email: string) {
+    return User.findOne({ email }).select("-refreshToken -comparePassword");
+  }
+
   async hashPassword(password: string) {
     return bcrypt.hash(password, SALT_ROUNDS);
   }
@@ -27,7 +31,7 @@ class UserService {
     return User.findByIdAndUpdate(
       userId,
       { refreshToken },
-      { runValidators: true }
+      { runValidators: true, new: true }
     );
   }
 
