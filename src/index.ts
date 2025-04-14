@@ -1,11 +1,13 @@
 import app from "@/app.js";
+
 import { logger } from "hono/logger";
-import auth from "@/controllers/auth.js";
 import { cors } from "hono/cors";
-
 import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
+import onError from "stoker/middlewares/on-error";
 
-const ROUTE_PREFIX = "/api/v1";
+import auth from "@/controllers/auth-controller.js";
+
+const VERSION = "/v1";
 
 app.use(serveEmojiFavicon("🔥"));
 app.use(logger());
@@ -15,8 +17,10 @@ app.get(`/health-check`, (c) => {
   return c.json({ message: "OK" }, 200);
 });
 
-app.route(`${ROUTE_PREFIX}/auth`, auth);
+app.route(`${VERSION}/auth`, auth);
 
 app.notFound((c) => {
   return c.json({ message: `Route not found - ${c.req.path}` }, 404);
 });
+
+app.onError(onError);

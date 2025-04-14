@@ -7,6 +7,7 @@ const logger = pino.default({
       colorize: true,
       translateTime: true,
       ignore: "pid,hostname",
+      hideObject: false,
     },
   },
 });

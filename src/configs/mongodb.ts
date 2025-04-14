@@ -12,7 +12,7 @@ export async function connectToDb(): Promise<void> {
     await mongoose.connect(ENV.MONGODB_URI);
     logger.info("✅ Connected to database!");
   } catch (err) {
-    logger.error("❌ Database connection error:", err);
+    logger.error(err, "❌ Database connection error");
     process.exit(1);
   }
 }
