@@ -2,7 +2,8 @@
   "name": "tasks-api",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
