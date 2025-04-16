@@ -4,7 +4,7 @@ import { UserZodSchema } from "@/schemas/user-schema.js";
 import userService from "@/services/user-service.js";
 import logger from "@/utils/logger.js";
 import { z } from "zod";
-import { setRefreshCookie } from "@/configs/cookie-options.js";
+import { setRefreshCookie } from "@/configs/cookie-config.js";
 
 const app = new Hono();
 
@@ -112,7 +112,7 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
       user._id
     );
 
-    setRefreshCookie(c, refreshToken);
+    await setRefreshCookie(c, refreshToken);
 
     logger.trace(`User ${user.firstname} has been logged in`);
 
