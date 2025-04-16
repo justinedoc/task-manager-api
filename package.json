@@ -3,7 +3,7 @@
   "type": "module",
   "packageManager": "pnpm@10.8.0",
   "engines": {
-    "node": "23.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
