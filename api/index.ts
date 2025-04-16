@@ -5,7 +5,7 @@ import { handle } from "hono/vercel";
 await connectToDb();
 
 export const config = {
-  runtime: "edge",
+  runtime: "node",
 };
 
 export default handle(app);

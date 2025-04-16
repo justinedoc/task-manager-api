@@ -11,6 +11,7 @@ export default [
   {
     rules: {
       "no-console": "warn",
+      "promise/prefer-await-to-then": "warn",
     },
   },
 ];
