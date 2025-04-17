@@ -6,7 +6,7 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "baseUrl": "./",
     "types": ["node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
@@ -14,8 +14,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["api/**/*.ts", "src"],
-  "exclude": ["node_modules", "dist"],
   "tsc-alias": {
     "resolveFullPaths": true
   }
