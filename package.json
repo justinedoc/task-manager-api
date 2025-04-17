@@ -3,8 +3,8 @@
   "type": "module",
   "packageManager": "pnpm@10.8.0",
   "scripts": {
-    "start": "node ./dist/src/local.js",
-    "dev": "tsx watch src/index.ts",
+    "start": "node ./dist/src/index.js",
+    "dev": "tsx watch src/local.ts",
     "build": "tsc && tsc-alias"
   },
   "dependencies": {
