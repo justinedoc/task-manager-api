@@ -8,8 +8,10 @@ const logger = pino.default({
       translateTime: true,
       ignore: "pid,hostname",
       hideObject: false,
+      supportEmoji: true,
     },
   },
 });
 
 export default logger;
+
