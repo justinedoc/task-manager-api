@@ -1,6 +1,18 @@
 import { Document, Schema, Types } from "mongoose";
 import { z } from "zod";
 
+export const GetAllTasksZodSchema = z.object({
+  search: z.string().optional(),
+  page: z.coerce.number().default(1),
+  limit: z.coerce.number().default(10),
+  sortBy: z.enum(["title", "createdAt"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("asc"),
+  completed: z.coerce.boolean().optional(),
+  status: z.enum(["not started", "in progress", "completed"]).optional(),
+  priority: z.enum(["low", "moderate", "extreme"]).optional(),
+  dueDate: z.coerce.date().optional(),
+});
+
 export const TaskZodSchema = z.object({
   title: z.string().min(2, "title is required! and can not be a single letter"),
   description: z.string().optional(),

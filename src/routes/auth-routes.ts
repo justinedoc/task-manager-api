@@ -10,7 +10,7 @@ import {
   OK,
   UNAUTHORIZED,
 } from "stoker/http-status-codes";
-import { formatAuthSuccessResponse } from "@/utils/formatAuthResponse.js";
+import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
 
 const app = new Hono();

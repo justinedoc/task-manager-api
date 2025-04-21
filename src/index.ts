@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
 import authRoutes from "@/routes/auth-routes.js";
 import userRoutes from "@/routes/user-routes.js";
+import taskRoutes from "@/routes/task-routes.js";
 import { onError } from "@/middlewares/on-error.js";
 
 const VERSION_ONE = "/v1";
@@ -18,6 +19,7 @@ app.get(`/health-check`, (c) => {
 
 app.route(`${VERSION_ONE}/auth`, authRoutes);
 app.route(`${VERSION_ONE}/user`, userRoutes);
+app.route(`${VERSION_ONE}/tasks`, taskRoutes);
 
 app.notFound((c) => {
   return c.json({ message: `Route not found - ${c.req.path}` }, 404);
