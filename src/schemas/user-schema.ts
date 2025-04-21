@@ -1,14 +1,14 @@
 import { Schema, Types } from "mongoose";
 import z from "zod";
-import bcrypt from "bcryptjs";
+import { isValidObjectId } from "mongoose";
 
 export const UserZodSchema = z.object({
   firstname: z.string().min(1).max(50),
   lastname: z.string().min(1).max(50),
   username: z.string().min(1).max(50),
   email: z.string().email("Invalid email"),
-  phone: z.number().optional(),
-  refreshToken: z.string().optional(),
+  phone: z.number(),
+  refreshToken: z.string(),
   password: z
     .string()
     .min(8)
@@ -19,11 +19,6 @@ export const UserZodSchema = z.object({
       );
     }, "Password must contain at least one letter, one number, and one special character"),
 });
-
-export type IUser = z.infer<typeof UserZodSchema> & {
-  comparePassword: (password: string) => Promise<boolean>;
-  _id: Types.ObjectId;
-};
 
 export const UserSchema = new Schema<IUser>(
   {
@@ -37,9 +32,30 @@ export const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-UserSchema.methods.comparePassword = async function (
-  this: IUser,
-  password: string
-): Promise<boolean> {
-  return bcrypt.compare(password, this.password);
+export const GetUserByIdZodSchema = z.object({
+  id: z
+    .string({ required_error: "User ID is required" })
+    .refine(isValidObjectId, { message: "Invalid user ID format" }),
+});
+
+const UpdateUserDataZodSchema = z
+  .object({
+    firstname: z.string().min(1).max(50),
+    lastname: z.string().min(1).max(50),
+    username: z.string().min(1).max(50),
+    email: z.string().email("Invalid email"),
+  })
+  .partial();
+
+export const UpdateUserZodSchema = z.object({
+  id: z.string().refine(isValidObjectId, {
+    message: "Invalid user ID format",
+  }),
+  data: UpdateUserDataZodSchema,
+});
+
+export type IUser = z.infer<typeof UserZodSchema> & {
+  comparePassword: (password: string) => Promise<boolean>;
+  getFullname: () => Promise<string>;
+  _id: Types.ObjectId;
 };

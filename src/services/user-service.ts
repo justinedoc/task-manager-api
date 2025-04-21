@@ -6,6 +6,7 @@ import type { IUser } from "@/schemas/user-schema.js";
 import type { Types } from "mongoose";
 import { generateAuthTokens } from "@/utils/token-utils.js";
 
+type IncomingUser = Omit<IUser, "comparePassword" | "getFullname" | "_id">;
 class UserService {
   async exists(email: string) {
     return User.exists({ email });
@@ -19,12 +20,12 @@ class UserService {
     return bcrypt.hash(password, SALT_ROUNDS);
   }
 
-  async create(userDetails: Omit<IUser, "comparePassword" | "_id">) {
+  async create(userDetails: IncomingUser) {
     return User.create(userDetails);
   }
 
   async getAuthTokens(id: Types.ObjectId) {
-    return generateAuthTokens(id, "user");
+    return generateAuthTokens(id, "USER");
   }
 
   async updateRefreshToken(userId: Types.ObjectId, refreshToken: string) {

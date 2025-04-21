@@ -2,9 +2,9 @@ import app from "@/app.js";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
-import onError from "stoker/middlewares/on-error";
-import authRoutes from "@/controllers/auth-controller.js";
-import userRoutes from "@/controllers/user-controller.js";
+import authRoutes from "@/routes/auth-routes.js";
+import userRoutes from "@/routes/user-routes.js";
+import { onError } from "@/middlewares/on-error.js";
 
 const VERSION_ONE = "/v1";
 

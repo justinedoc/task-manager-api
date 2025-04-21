@@ -13,8 +13,8 @@ const serverConfig = {
 };
 
 serve(serverConfig, async (info) => {
-  pino.default.info(`✅ Server is running on http://localhost:${info.port}`);
   await connectToDb();
+  pino.default.info(`✅ Server is running on http://localhost:${info.port}`);
 });
 
 export default app;
