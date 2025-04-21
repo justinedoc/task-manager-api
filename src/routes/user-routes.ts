@@ -1,4 +1,3 @@
-import { setRefreshCookie } from "@/configs/cookie-config.js";
 import {
   authMiddleware,
   isSelfOrAdmin,
@@ -7,17 +6,12 @@ import User from "@/models/user-model.js";
 import {
   GetUserByIdZodSchema,
   UpdateUserZodSchema,
-  UserZodSchema,
 } from "@/schemas/user-schema.js";
-import userService from "@/services/user-service.js";
 import type { Variables } from "@/types/hono-types.js";
-import { formatAuthSuccessResponse } from "@/utils/formatAuthResponse.js";
 import logger from "@/utils/logger.js";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import {
-  CONFLICT,
-  CREATED,
   FORBIDDEN,
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
@@ -26,7 +20,7 @@ import {
 
 const unauthorizedRes = {
   success: false,
-  message: "You are not authorized to view this user",
+  message: "You are forbidden to perform this action",
 };
 
 const app = new Hono<{
@@ -34,70 +28,6 @@ const app = new Hono<{
 }>();
 
 app.use(authMiddleware);
-
-// register users
-app.post("/register", zValidator("json", UserZodSchema), async (c) => {
-  const userDetails = c.req.valid("json");
-
-  try {
-    const userExists = await userService.exists(userDetails.email);
-
-    if (userExists) {
-      return c.json(
-        {
-          success: false,
-          message: "User with this email already exists",
-        },
-        CONFLICT
-      );
-    }
-
-    const hashedPassword = await userService.hashPassword(userDetails.password);
-
-    const user = await userService.create({
-      ...userDetails,
-      password: hashedPassword,
-    });
-
-    const { accessToken, refreshToken } = await userService.getAuthTokens(
-      user._id
-    );
-
-    const updatedUser = await userService.updateRefreshToken(
-      user._id,
-      refreshToken
-    );
-
-    if (!updatedUser) {
-      logger.error("Failed to update refresh token");
-    }
-
-    await setRefreshCookie(c, refreshToken);
-
-    logger.trace(`User ${user.firstname} has been added to the database`);
-
-    return c.json(
-      {
-        ...formatAuthSuccessResponse("Registration successful", user),
-        accessToken,
-      },
-      CREATED
-    );
-  } catch (error) {
-    logger.error(
-      error instanceof Error ? error.message : error,
-      "An error occurred while registering user: "
-    );
-
-    return c.json(
-      {
-        success: false,
-        message: "An unexpected error occurred",
-      },
-      INTERNAL_SERVER_ERROR
-    );
-  }
-});
 
 // get user by id
 app.get("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
@@ -228,7 +158,7 @@ app.delete("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
     return c.json(
       {
         success: true,
-        message: "User deleted successfully",
+        message: "Account deleted successfully",
       },
       OK
     );

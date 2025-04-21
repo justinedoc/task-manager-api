@@ -6,7 +6,7 @@ import type { IUser } from "@/schemas/user-schema.js";
 import type { Types } from "mongoose";
 import { generateAuthTokens } from "@/utils/token-utils.js";
 
-type IncomingUser = Omit<IUser, "comparePassword" | "getFullname" | "_id">;
+type IncomingUser = Omit<IUser, "comparePassword" | "getFullname" | "_id" | "tasks">;
 class UserService {
   async exists(email: string) {
     return User.exists({ email });
@@ -31,7 +31,7 @@ class UserService {
   async updateRefreshToken(userId: Types.ObjectId, refreshToken: string) {
     return User.findByIdAndUpdate(
       userId,
-      { refreshToken },
+      { $addToSet: { refreshToken } },
       { runValidators: true, new: true }
     );
   }

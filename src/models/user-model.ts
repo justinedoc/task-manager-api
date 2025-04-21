@@ -13,6 +13,6 @@ UserSchema.methods.getFullname = async function (this: IUser) {
   return `${this.firstname} ${this.lastname}`;
 };
 
-const User = model<IUser>("user", UserSchema);
+const User = model<IUser>("User", UserSchema);
 
 export default User;

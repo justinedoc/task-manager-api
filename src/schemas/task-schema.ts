@@ -1,4 +1,4 @@
-import { Document, Schema } from "mongoose";
+import { Document, Schema, Types } from "mongoose";
 import { z } from "zod";
 
 export const TaskZodSchema = z.object({
@@ -15,7 +15,10 @@ export const TaskZodSchema = z.object({
   imgUrl: z.string().url(),
 });
 
-export type ITask = z.infer<typeof TaskZodSchema> & Document;
+export type ITask = z.infer<typeof TaskZodSchema> & {
+  user: Types.ObjectId;
+  _id: Types.ObjectId;
+} & Document;
 
 export const TaskSchema = new Schema<ITask>(
   {
@@ -25,6 +28,11 @@ export const TaskSchema = new Schema<ITask>(
     status: { type: String },
     dueDate: { type: Date, required: true },
     priority: { type: String, required: true },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true }
 );
