@@ -7,6 +7,7 @@ import type { Variables } from "@/types/hono-types.js";
 import type { TaskListResponse } from "@/types/tasks-types.js";
 import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
 import logger from "@/utils/logger.js";
+import { wildCardDelCacheKey } from "@/utils/node-cache.js";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { OK } from "stoker/http-status-codes";
@@ -31,6 +32,9 @@ app.post("/new", zValidator("json", TaskZodSchema), async (c) => {
         500
       );
     }
+
+    wildCardDelCacheKey(TASKS_CACHE_PREFIX(userId.toString()));
+    logger.info(`Cache cleared for user ${userId}`);
 
     return c.json(
       {
@@ -58,7 +62,7 @@ app.post("/new", zValidator("json", TaskZodSchema), async (c) => {
 app.get("/", zValidator("query", GetAllTasksZodSchema), async (c) => {
   const { id: userId } = c.get("user");
   const query = c.req.valid("query");
-  const cacheKey = getCacheKey(TASKS_CACHE_PREFIX, { userId, ...query });
+  const cacheKey = getCacheKey(TASKS_CACHE_PREFIX(userId.toString()), query);
 
   try {
     const data = await getCacheOrFetch(cacheKey, () =>
