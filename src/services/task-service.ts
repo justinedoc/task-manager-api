@@ -13,6 +13,13 @@ class TaskService {
     return Task.create({ ...taskDetails, user: userId });
   }
 
+  async updateTask(taskId: string, taskDetails: Partial<TNewTask>) {
+    return Task.findByIdAndUpdate(taskId, taskDetails, {
+      new: true,
+      runValidators: true,
+    }).lean<ITaskLean>();
+  }
+
   async allTasks(query: TAllTasksQuery, userId: string) {
     const {
       status,

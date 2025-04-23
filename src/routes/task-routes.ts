@@ -1,6 +1,10 @@
 import { TASKS_CACHE_PREFIX } from "@/constants/cache-constants.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
-import { GetAllTasksZodSchema, TaskZodSchema } from "@/schemas/task-schema.js";
+import {
+  GetAllTasksZodSchema,
+  TaskZodSchema,
+  TaskZodSchemaForUpdate,
+} from "@/schemas/task-schema.js";
 import taskService from "@/services/task-service.js";
 import type { ApiResponse } from "@/types/api-res-type.js";
 import type { Variables } from "@/types/hono-types.js";
@@ -59,7 +63,7 @@ app.post("/new", zValidator("json", TaskZodSchema), async (c) => {
   }
 });
 
-app.get("/", zValidator("query", GetAllTasksZodSchema), async (c) => {
+app.get("/all", zValidator("query", GetAllTasksZodSchema), async (c) => {
   const { id: userId } = c.get("user");
   const query = c.req.valid("query");
   const cacheKey = getCacheKey(TASKS_CACHE_PREFIX(userId.toString()), query);
@@ -92,4 +96,51 @@ app.get("/", zValidator("query", GetAllTasksZodSchema), async (c) => {
   }
 });
 
+app.patch(
+  "/:taskId",
+  zValidator("param", TaskZodSchemaForUpdate.pick({ taskId: true })),
+  zValidator("json", TaskZodSchemaForUpdate.omit({ taskId: true })),
+  async (c) => {
+    const { id: userId } = c.get("user");
+    const { taskId } = c.req.valid("param");
+    const taskDetails = c.req.valid("json");
+
+    try {
+      const task = await taskService.updateTask(taskId, taskDetails);
+      if (!task) {
+        return c.json(
+          {
+            success: false,
+            message: "Failed to update task",
+          },
+          500
+        );
+      }
+
+      wildCardDelCacheKey(TASKS_CACHE_PREFIX(userId.toString()));
+      logger.info(`Cache cleared for user ${userId}`);
+
+      return c.json(
+        {
+          success: true,
+          message: "Task updated successfully",
+          data: { task },
+        },
+        OK
+      );
+    } catch (err) {
+      logger.error(
+        err instanceof Error ? err.message : err,
+        "Error updating task"
+      );
+      return c.json(
+        {
+          success: false,
+          message: "An error occurred while updating the task",
+        },
+        500
+      );
+    }
+  }
+);
 export default app;

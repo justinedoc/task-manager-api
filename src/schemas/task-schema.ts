@@ -1,5 +1,5 @@
 import type { ITaskDoc } from "@/types/tasks-types.js";
-import { Schema } from "mongoose";
+import { isValidObjectId, Schema } from "mongoose";
 import { z } from "zod";
 
 export const GetAllTasksZodSchema = z.object({
@@ -26,6 +26,10 @@ export const TaskZodSchema = z.object({
   dueDate: z.union([z.string(), z.date()]).transform((val) => new Date(val)),
   priority: z.enum(["low", "moderate", "extreme"]).default("low"),
   imgUrl: z.string().url().optional(),
+});
+
+export const TaskZodSchemaForUpdate = TaskZodSchema.partial().extend({
+  taskId: z.string().refine(isValidObjectId, { message: "Invalid task ID" }),
 });
 
 export const TaskSchema = new Schema<ITaskDoc>(
