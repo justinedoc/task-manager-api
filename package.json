@@ -1,7 +1,6 @@
 {
   "name": "tasks-api",
   "type": "module",
-  "packageManager": "pnpm@10.8.0",
   "scripts": {
     "start": "node ./dist/src/index.js",
     "dev": "tsx watch src/index.ts",
