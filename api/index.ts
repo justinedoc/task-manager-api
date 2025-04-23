@@ -1,6 +1,6 @@
 import app from "./src/app.js";
 import { connectToDb } from "@/configs/mongodb.js";
-import { handle } from "@hono/node-server/vercel";
+import { handle } from "hono/vercel";
 
 await connectToDb();
 
