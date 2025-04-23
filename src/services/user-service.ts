@@ -1,12 +1,14 @@
 import bcrypt from "bcryptjs";
-
 import { SALT_ROUNDS } from "@/constants/auth-constants.js";
 import User from "@/models/user-model.js";
-import type { IUser } from "@/schemas/user-schema.js";
 import type { Types } from "mongoose";
 import { generateAuthTokens } from "@/utils/token-utils.js";
+import type { IUserLean } from "@/types/user-type.js";
 
-type IncomingUser = Omit<IUser, "comparePassword" | "getFullname" | "_id" | "tasks">;
+type IncomingUser = Omit<
+  IUserLean,
+  "comparePassword" | "getFullname" | "_id" | "tasks" | "refreshToken"
+>;
 class UserService {
   async exists(email: string) {
     return User.exists({ email });

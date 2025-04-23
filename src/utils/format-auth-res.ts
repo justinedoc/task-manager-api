@@ -1,6 +1,6 @@
-import type { IUser } from "@/schemas/user-schema.js";
+import type { IUserLean } from "@/types/user-type.js";
 
-export function formatAuthSuccessResponse(message: string, data: IUser) {
+export function formatAuthSuccessResponse(message: string, data: IUserLean) {
   return {
     success: true,
     message,

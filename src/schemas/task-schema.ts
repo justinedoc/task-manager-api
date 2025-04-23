@@ -1,4 +1,5 @@
-import { Document, Schema, Types } from "mongoose";
+import type { ITaskDoc } from "@/types/tasks-types.js";
+import { Schema } from "mongoose";
 import { z } from "zod";
 
 export const GetAllTasksZodSchema = z.object({
@@ -22,17 +23,12 @@ export const TaskZodSchema = z.object({
   status: z
     .enum(["not started", "in progress", "completed"])
     .default("not started"),
-  dueDate: z.date(),
+  dueDate: z.union([z.string(), z.date()]).transform((val) => new Date(val)),
   priority: z.enum(["low", "moderate", "extreme"]).default("low"),
-  imgUrl: z.string().url(),
+  imgUrl: z.string().url().optional(),
 });
 
-export type ITask = z.infer<typeof TaskZodSchema> & {
-  user: Types.ObjectId;
-  _id: Types.ObjectId;
-} & Document;
-
-export const TaskSchema = new Schema<ITask>(
+export const TaskSchema = new Schema<ITaskDoc>(
   {
     title: { type: String, required: true },
     description: { type: String },

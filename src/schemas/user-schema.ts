@@ -1,6 +1,7 @@
-import { Schema, Types } from "mongoose";
+import { Schema } from "mongoose";
 import z from "zod";
 import { isValidObjectId } from "mongoose";
+import type { IUserDoc } from "@/types/user-type.js";
 
 // User login schema
 export const UserLoginZodSchema = z.object({
@@ -50,15 +51,8 @@ export const UserZodSchema = z.object({
     }, "Password must contain at least one letter, one number, and one special character"),
 });
 
-export type IUser = z.infer<typeof UserZodSchema> & {
-  comparePassword: (password: string) => Promise<boolean>;
-  getFullname: () => Promise<string>;
-  tasks: Types.ObjectId[];
-  _id: Types.ObjectId;
-};
-
 // User schema for MongoDB
-export const UserSchema = new Schema<IUser>(
+export const UserSchema = new Schema<IUserDoc>(
   {
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
