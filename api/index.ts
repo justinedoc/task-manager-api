@@ -1,4 +1,4 @@
-import app from "@/app.js";
+import app from "./src/app.js";
 import { connectToDb } from "@/configs/mongodb.js";
 import { handle } from "@hono/node-server/vercel";
 
