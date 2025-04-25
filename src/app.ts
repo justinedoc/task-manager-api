@@ -5,7 +5,9 @@ import * as pino from "@/utils/logger.js";
 import { connectToDb } from "@/configs/mongodb.js";
 import { serve } from "@hono/node-server";
 
-const app = new Hono().basePath("/api");
+const app = new Hono({
+  strict: false,
+}).basePath("/api");
 
 const serverConfig = {
   fetch: app.fetch,

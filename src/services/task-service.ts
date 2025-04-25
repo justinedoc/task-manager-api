@@ -13,10 +13,21 @@ class TaskService {
     return Task.create({ ...taskDetails, user: userId });
   }
 
-  async updateTask(taskId: string, taskDetails: Partial<TNewTask>) {
+  async getTaskById(taskId: string, userId: string) {
+    return Task.findOne({ _id: taskId, user: userId }).lean<ITaskLean>();
+  }
+
+  async updateTask(taskDetails: Partial<TNewTask>, taskId: string) {
     return Task.findByIdAndUpdate(taskId, taskDetails, {
       new: true,
       runValidators: true,
+    }).lean<ITaskLean>();
+  }
+
+  async deleteTask(taskId: string, userId: string) {
+    return Task.findOneAndDelete({
+      _id: taskId,
+      user: userId,
     }).lean<ITaskLean>();
   }
 

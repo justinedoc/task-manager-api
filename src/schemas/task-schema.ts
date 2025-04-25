@@ -32,6 +32,10 @@ export const TaskZodSchemaForUpdate = TaskZodSchema.partial().extend({
   taskId: z.string().refine(isValidObjectId, { message: "Invalid task ID" }),
 });
 
+export const TaskZodSchemaForDelete = TaskZodSchemaForUpdate.pick({
+  taskId: true,
+});
+
 export const TaskSchema = new Schema<ITaskDoc>(
   {
     title: { type: String, required: true },
