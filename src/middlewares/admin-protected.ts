@@ -1,9 +1,9 @@
-import type { Variables } from "@/types/hono-types.js";
+import type { AppBindings } from "@/types/hono-types.js";
 import type { Context, Next } from "hono";
 import { UNAUTHORIZED } from "stoker/http-status-codes";
 
 export const adminProtected = async (
-  c: Context<{ Variables: Variables }>,
+  c: Context<{ Variables: AppBindings["Variables"] }>,
   next: Next
 ) => {
   const user = c.get("user");
