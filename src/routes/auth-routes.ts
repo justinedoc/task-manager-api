@@ -8,12 +8,12 @@ import {
   CREATED,
   INTERNAL_SERVER_ERROR,
   OK,
-  UNAUTHORIZED,
 } from "stoker/http-status-codes";
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
+import { AuthError } from "@/errors/auth-error.js";
 
-const app = new Hono();
+const app = new Hono().basePath("/auth");
 
 // register users
 app.post("/register", zValidator("json", UserZodSchema), async (c) => {
@@ -22,15 +22,7 @@ app.post("/register", zValidator("json", UserZodSchema), async (c) => {
   try {
     const userExists = await userService.exists(userDetails.email);
 
-    if (userExists) {
-      return c.json(
-        {
-          success: false,
-          message: "User with this email already exists",
-        },
-        CONFLICT
-      );
-    }
+    if (userExists) throw new AuthError("User already exists", CONFLICT);
 
     const hashedPassword = await userService.hashPassword(userDetails.password);
 
@@ -48,9 +40,7 @@ app.post("/register", zValidator("json", UserZodSchema), async (c) => {
       refreshToken
     );
 
-    if (!updatedUser) {
-      logger.error("Failed to update refresh token");
-    }
+    if (!updatedUser) throw new AuthError("Failed to update refresh token");
 
     await setRefreshCookie(c, refreshToken);
 
@@ -63,17 +53,15 @@ app.post("/register", zValidator("json", UserZodSchema), async (c) => {
       },
       CREATED
     );
-  } catch (error) {
-    logger.error(
-      error instanceof Error ? error.message : error,
-      "An error occurred while registering user: "
-    );
+  } catch (err) {
+    if (err instanceof AuthError) {
+      logger.warn(err.message);
+      return c.json({ success: false, message: err.message }, err.status);
+    }
 
+    logger.error(err, "Unexpected error in refresh");
     return c.json(
-      {
-        success: false,
-        message: "An unexpected error occurred",
-      },
+      { success: false, message: "An Unexpected error occured" },
       INTERNAL_SERVER_ERROR
     );
   }
@@ -86,27 +74,11 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
   try {
     const user = await userService.findByEmail(email);
 
-    if (!user) {
-      return c.json(
-        {
-          success: false,
-          message: "Incorrect credentials",
-        },
-        UNAUTHORIZED
-      );
-    }
+    if (!user) throw new AuthError("Incorrect credentials");
 
     const isPasswordMatch = await user.comparePassword(password);
 
-    if (!isPasswordMatch) {
-      return c.json(
-        {
-          success: false,
-          message: "Incorrect credentials",
-        },
-        UNAUTHORIZED
-      );
-    }
+    if (!isPasswordMatch) throw new AuthError("Incorrect credentials");
 
     const { accessToken, refreshToken } = await userService.getAuthTokens(
       user._id
@@ -117,15 +89,7 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
       refreshToken
     );
 
-    if (!updatedUser) {
-      return c.json(
-        {
-          success: false,
-          message: "An error occurred while logging in",
-        },
-        INTERNAL_SERVER_ERROR
-      );
-    }
+    if (!updatedUser) throw new AuthError("Failed to update refresh token");
 
     await setRefreshCookie(c, refreshToken);
 
@@ -139,16 +103,14 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
       OK
     );
   } catch (error) {
-    logger.error(
-      error instanceof Error ? error.message : error,
-      "An error occurred while logging in user: "
-    );
+    if (error instanceof AuthError) {
+      logger.warn(error.message);
+      return c.json({ success: false, message: error.message }, error.status);
+    }
 
+    logger.error(error, "Unexpected error in refresh");
     return c.json(
-      {
-        success: false,
-        message: "An unexpected error occurred",
-      },
+      { success: false, message: "An Unexpected error occured" },
       INTERNAL_SERVER_ERROR
     );
   }

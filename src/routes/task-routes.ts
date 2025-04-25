@@ -2,6 +2,7 @@ import {
   TASK_CACHE_PREFIX,
   TASKS_CACHE_PREFIX,
 } from "@/constants/cache-constants.js";
+import { TaskError } from "@/errors/task-error.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import {
   GetAllTasksZodSchema,
@@ -11,39 +12,25 @@ import {
 } from "@/schemas/task-schema.js";
 import taskService from "@/services/task-service.js";
 import type { ApiResponse } from "@/types/api-res-type.js";
-import type { Variables } from "@/types/hono-types.js";
+import type { AppBindings } from "@/types/hono-types.js";
 import type { TaskListResponse } from "@/types/tasks-types.js";
 import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
 import logger from "@/utils/logger.js";
 import { wildCardDelCacheKey } from "@/utils/node-cache.js";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import {
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  OK,
-} from "stoker/http-status-codes";
+import { INTERNAL_SERVER_ERROR, OK } from "stoker/http-status-codes";
 
-const app = new Hono<{ Variables: Variables }>();
+const app = new Hono<AppBindings>().basePath("/tasks");
 
 app.use(authMiddleware);
 
-app.post("/new", zValidator("json", TaskZodSchema), async (c) => {
+app.post("/add", zValidator("json", TaskZodSchema), async (c) => {
   const { id: userId } = c.get("user");
   const taskDetails = c.req.valid("json");
 
   try {
     const task = await taskService.create(taskDetails, userId);
-
-    if (!task) {
-      return c.json(
-        {
-          success: false,
-          message: "Failed to create task",
-        },
-        INTERNAL_SERVER_ERROR
-      );
-    }
 
     wildCardDelCacheKey(TASKS_CACHE_PREFIX(userId.toString()));
     logger.info(`Cache cleared for user ${userId}`);
@@ -57,10 +44,22 @@ app.post("/new", zValidator("json", TaskZodSchema), async (c) => {
       OK
     );
   } catch (err) {
+    if (err instanceof TaskError) {
+      logger.warn(err.message);
+      return c.json(
+        {
+          success: false,
+          message: err.message,
+        },
+        err.status
+      );
+    }
+
     logger.error(
       err instanceof Error ? err.message : err,
       "Error creating task"
     );
+
     return c.json(
       {
         success: false,
@@ -80,30 +79,30 @@ app.get(
     const cacheKey = getCacheKey(TASK_CACHE_PREFIX, { userId, taskId });
 
     try {
-      return await getCacheOrFetch(cacheKey, async () => {
-        const task = await taskService.getTaskById(taskId, userId);
+      const task = await getCacheOrFetch(cacheKey, () =>
+        taskService.getTaskById(taskId, userId)
+      );
 
-        if (!task) {
-          return c.json(
-            {
-              success: false,
-              message: "Task not found",
-            },
-            BAD_REQUEST
-          );
-        }
-
+      return c.json(
+        {
+          success: true,
+          message: "Task fetched successfully",
+          data: { task },
+        },
+        OK
+      );
+    } catch (err) {
+      if (err instanceof TaskError) {
+        logger.warn(err.message);
         return c.json(
           {
-            success: true,
-            message: "Task fetched successfully",
-            data: { task },
+            success: false,
+            message: err.message,
           },
-          OK
+          err.status
         );
-      });
-    } catch (err) {
-      logger.error(err instanceof Error && err.message, "Error fetching task");
+      }
+      logger.error(err, "Error fetching task");
       return c.json(
         {
           success: false,
@@ -133,10 +132,18 @@ app.get("/", zValidator("query", GetAllTasksZodSchema), async (c) => {
 
     return c.json(result, OK);
   } catch (err) {
-    logger.error(
-      err instanceof Error ? err.message : err,
-      "Error fetching tasks"
-    );
+    if (err instanceof TaskError) {
+      logger.warn(err.message);
+      return c.json(
+        {
+          success: false,
+          message: err.message,
+        },
+        err.status
+      );
+    }
+
+    logger.error(err, "Error fetching tasks");
 
     return c.json(
       {
@@ -160,18 +167,8 @@ app.patch(
     try {
       const task = await taskService.updateTask(taskDetails, taskId);
 
-      if (!task) {
-        return c.json(
-          {
-            success: false,
-            message: "Failed to update task",
-          },
-          BAD_REQUEST
-        );
-      }
-
-      // TODO: implement cache delete strategy for GET task by ID
       wildCardDelCacheKey(TASKS_CACHE_PREFIX(userId.toString()));
+      wildCardDelCacheKey(TASK_CACHE_PREFIX);
       logger.info(`Cache cleared for user ${userId}`);
 
       return c.json(
@@ -183,10 +180,18 @@ app.patch(
         OK
       );
     } catch (err) {
-      logger.error(
-        err instanceof Error ? err.message : err,
-        "Error updating task"
-      );
+      if (err instanceof TaskError) {
+        logger.warn(err.message);
+        return c.json(
+          {
+            success: false,
+            message: err.message,
+          },
+          err.status
+        );
+      }
+
+      logger.error(err, "Error updating task");
       return c.json(
         {
           success: false,
@@ -206,20 +211,32 @@ app.delete(
     const userId = c.get("user").id;
 
     try {
-      await taskService.deleteTask(taskId, userId);
+      const task = await taskService.deleteTask(taskId, userId);
 
-      // TODO: implement cache delete strategy for GET task by ID
       wildCardDelCacheKey(TASKS_CACHE_PREFIX(userId.toString()));
+      wildCardDelCacheKey(TASK_CACHE_PREFIX);
 
       return c.json(
         {
           success: true,
           message: "Task deleted successfully",
+          data: { task },
         },
         OK
       );
     } catch (err) {
-      logger.error(err instanceof Error && err.message, "Error deleting task");
+      if (err instanceof TaskError) {
+        logger.warn(err.message);
+        return c.json(
+          {
+            success: false,
+            message: err.message,
+          },
+          err.status
+        );
+      }
+
+      logger.error(err, "Error deleting task");
       return c.json(
         {
           success: false,

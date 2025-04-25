@@ -1,31 +1,28 @@
+import { USER_CACHE_PREFIX } from "@/constants/cache-constants.js";
+import { AuthError } from "@/errors/auth-error.js";
 import {
   authMiddleware,
   isSelfOrAdmin,
 } from "@/middlewares/auth-middleware.js";
-import User from "@/models/user-model.js";
 import {
   GetUserByIdZodSchema,
   UpdateUserZodSchema,
 } from "@/schemas/user-schema.js";
-import type { Variables } from "@/types/hono-types.js";
+import userService from "@/services/user-service.js";
+import type { AppBindings } from "@/types/hono-types.js";
+import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
 import logger from "@/utils/logger.js";
+import { wildCardDelCacheKey } from "@/utils/node-cache.js";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import {
-  FORBIDDEN,
-  INTERNAL_SERVER_ERROR,
-  NOT_FOUND,
-  OK,
-} from "stoker/http-status-codes";
+import { FORBIDDEN, INTERNAL_SERVER_ERROR, OK } from "stoker/http-status-codes";
 
 const unauthorizedRes = {
   success: false,
   message: "You are forbidden to perform this action",
 };
 
-const app = new Hono<{
-  Variables: Variables;
-}>();
+const app = new Hono<AppBindings>().basePath("/user");
 
 app.use(authMiddleware);
 
@@ -33,25 +30,16 @@ app.use(authMiddleware);
 app.get("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
   const { id } = c.req.valid("param");
   const { id: userId, role } = c.get("user");
-
-  if (!isSelfOrAdmin({ userId, id, role })) {
-    return c.json(unauthorizedRes, FORBIDDEN);
-  }
+  const cacheKey = getCacheKey("user", { userId });
 
   try {
-    const user = await User.findById(id).select(
-      "-refreshToken -comparePassword -__v -password"
-    );
-
-    if (!user) {
-      return c.json(
-        {
-          success: false,
-          message: "User not found",
-        },
-        NOT_FOUND
-      );
+    if (!isSelfOrAdmin({ userId, id, role })) {
+      throw new AuthError(unauthorizedRes.message, FORBIDDEN);
     }
+    const user = await getCacheOrFetch(
+      cacheKey,
+      async () => await userService.getById(userId)
+    );
 
     return c.json(
       {
@@ -62,10 +50,18 @@ app.get("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
       OK
     );
   } catch (error) {
-    logger.error(
-      error instanceof Error ? error.message : "Unknown error occurred",
-      "Error fetching user by ID"
-    );
+    if (error instanceof AuthError) {
+      logger.warn(error.message, "Error fetching user by ID");
+      return c.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        error.status
+      );
+    }
+
+    logger.error(error, "Error fetching user by ID");
 
     return c.json(
       {
@@ -87,25 +83,14 @@ app.patch(
     const { id } = c.req.valid("param");
     const { data } = c.req.valid("json");
 
-    if (!isSelfOrAdmin({ userId, id, role })) {
-      return c.json(unauthorizedRes, FORBIDDEN);
-    }
-
     try {
-      const user = await User.findByIdAndUpdate(id, data, {
-        new: true,
-        runValidators: true,
-      }).select("-password -refreshToken -__v");
-
-      if (!user) {
-        return c.json(
-          {
-            success: false,
-            message: "User not found",
-          },
-          NOT_FOUND
-        );
+      if (!isSelfOrAdmin({ userId, id, role })) {
+        throw new AuthError(unauthorizedRes.message, FORBIDDEN);
       }
+
+      const user = await userService.getByIdAndUpdate(id, data);
+
+      wildCardDelCacheKey(USER_CACHE_PREFIX);
 
       return c.json(
         {
@@ -116,10 +101,18 @@ app.patch(
         OK
       );
     } catch (error) {
-      logger.error(
-        error instanceof Error ? error.message : "Unknown error occurred",
-        "Error updating user"
-      );
+      if (error instanceof AuthError) {
+        logger.warn(error.message, "Error updating user");
+        return c.json(
+          {
+            success: false,
+            message: error.message,
+          },
+          error.status
+        );
+      }
+
+      logger.error(error, "Error updating user");
 
       return c.json(
         {
@@ -136,37 +129,36 @@ app.delete("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
   const { id } = c.req.valid("param");
   const { id: userId, role } = c.get("user");
 
-  if (!isSelfOrAdmin({ userId, id, role })) {
-    return c.json(unauthorizedRes, FORBIDDEN);
-  }
-
   try {
-    const user = await User.findByIdAndDelete(id).select(
-      "-refreshToken -comparePassword -__v -password"
-    );
-
-    if (!user) {
-      return c.json(
-        {
-          success: false,
-          message: "User not found",
-        },
-        NOT_FOUND
-      );
+    if (!isSelfOrAdmin({ userId, id, role })) {
+      throw new AuthError(unauthorizedRes.message, FORBIDDEN);
     }
+
+    const user = await userService.deleteUser(id);
+
+    wildCardDelCacheKey(USER_CACHE_PREFIX);
 
     return c.json(
       {
         success: true,
         message: "Account deleted successfully",
+        data: { user },
       },
       OK
     );
   } catch (error) {
-    logger.error(
-      error instanceof Error ? error.message : "Unknown error occurred",
-      "Error deleting user"
-    );
+    if (error instanceof AuthError) {
+      logger.warn(error.message, "Error deleting user");
+      return c.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        error.status
+      );
+    }
+
+    logger.error(error, "Error deleting user");
 
     return c.json(
       {

@@ -4,31 +4,56 @@ import type { GetAllTasksZodSchema } from "@/schemas/task-schema.js";
 import type { z } from "zod";
 import type { ITaskDoc, ITaskLean } from "@/types/tasks-types.js";
 import type { IUserLean } from "@/types/user-type.js";
+import { TaskError } from "@/errors/task-error.js";
+import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";
 
 type TNewTask = Omit<ITaskLean, "_id" | "user">;
 type TAllTasksQuery = z.infer<typeof GetAllTasksZodSchema>;
 
 class TaskService {
   async create(taskDetails: TNewTask, userId: string) {
-    return Task.create({ ...taskDetails, user: userId });
+    const task = await Task.create({ ...taskDetails, user: userId });
+    if (!task) throw new TaskError("Failed to create task", BAD_REQUEST);
+    return task;
   }
 
   async getTaskById(taskId: string, userId: string) {
-    return Task.findOne({ _id: taskId, user: userId }).lean<ITaskLean>();
-  }
-
-  async updateTask(taskDetails: Partial<TNewTask>, taskId: string) {
-    return Task.findByIdAndUpdate(taskId, taskDetails, {
-      new: true,
-      runValidators: true,
-    }).lean<ITaskLean>();
-  }
-
-  async deleteTask(taskId: string, userId: string) {
-    return Task.findOneAndDelete({
+    const task = await Task.findOne({
       _id: taskId,
       user: userId,
     }).lean<ITaskLean>();
+
+    if (!task) throw new TaskError("Task not found", NOT_FOUND);
+
+    return task;
+  }
+
+  async updateTask(taskDetails: Partial<TNewTask>, taskId: string) {
+    const task = await Task.findByIdAndUpdate(taskId, taskDetails, {
+      new: true,
+      runValidators: true,
+    }).lean<ITaskLean>();
+
+    if (!task) throw new TaskError("Failed to update task", BAD_REQUEST);
+
+    return task;
+  }
+
+  async deleteTask(taskId: string, userId: string) {
+    const task = await Task.findOneAndDelete(
+      {
+        _id: taskId,
+        user: userId,
+      },
+      { new: true }
+    ).lean<ITaskLean>();
+
+    if (!task)
+      throw new TaskError(
+        "Failed to delete task or task already deleted",
+        NOT_FOUND
+      );
+    return task;
   }
 
   async allTasks(query: TAllTasksQuery, userId: string) {

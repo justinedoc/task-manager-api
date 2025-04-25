@@ -7,7 +7,7 @@ export const GetAllTasksZodSchema = z.object({
   page: z.coerce.number().default(1),
   limit: z.coerce.number().default(10),
   sortBy: z.enum(["title", "createdAt"]).default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("asc"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
   completed: z.coerce.boolean().optional(),
   status: z.enum(["not started", "in progress", "completed"]).optional(),
   priority: z.enum(["low", "moderate", "extreme"]).optional(),
