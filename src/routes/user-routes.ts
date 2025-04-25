@@ -7,6 +7,7 @@ import {
 import {
   GetUserByIdZodSchema,
   UpdateUserZodSchema,
+  UserPasswordUpdateZodSchema,
 } from "@/schemas/user-schema.js";
 import userService from "@/services/user-service.js";
 import type { AppBindings } from "@/types/hono-types.js";
@@ -72,6 +73,52 @@ app.get("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
     );
   }
 });
+
+// update user password
+app.patch(
+  "/reset-password",
+  zValidator("json", UserPasswordUpdateZodSchema),
+  async (c) => {
+    const { id: userId } = c.get("user");
+    const { newPassword, oldPassword } = c.req.valid("json");
+
+    try {
+      await userService.resetPasswordWithOldPassword(userId, oldPassword);
+
+      const hashedPassword = await userService.hashPassword(newPassword);
+      const user = await userService.updatePassword(userId, hashedPassword);
+
+      return c.json(
+        {
+          success: true,
+          message: "Password reset successfully",
+          data: { user },
+        },
+        OK
+      );
+    } catch (err) {
+      if (err instanceof AuthError) {
+        logger.warn(err.message, "Error resetting password with old password");
+        return c.json(
+          {
+            success: false,
+            message: err.message,
+          },
+          err.status
+        );
+      }
+      logger.error(err, "Error resetting password with old password");
+
+      return c.json(
+        {
+          success: false,
+          message: "An error occurred while resetting the password",
+        },
+        INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+);
 
 // update user
 app.patch(

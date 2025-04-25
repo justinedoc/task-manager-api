@@ -21,7 +21,11 @@ class UserService {
   }
 
   async findByEmail(email: string) {
-    return User.findOne({ email }).select("-refreshToken -comparePassword");
+    const user = await User.findOne({ email }).select(
+      "-refreshToken -comparePassword"
+    );
+    if (!user) throw new AuthError("Incorrect credentials");
+    return user;
   }
 
   async getById(id: string) {
@@ -63,6 +67,30 @@ class UserService {
     return bcrypt.hash(password, SALT_ROUNDS);
   }
 
+  async updatePassword(id: string, hashedPassword: string) {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { password: hashedPassword },
+      {
+        new: true,
+      }
+    ).select("-comparePassword -refreshToken -__v -password");
+
+    if (!user) throw new AuthError("User not found", NOT_FOUND);
+    return user;
+  }
+
+  async resetPasswordWithOldPassword(id: string, oldPassword: string) {
+    const user = await User.findById(id).select("comparePassword password");
+
+    if (!user) throw new AuthError("User not found", NOT_FOUND);
+
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch) throw new AuthError("Incorrect credentials", BAD_REQUEST);
+
+    return user;
+  }
+
   async getAuthTokens(id: Types.ObjectId) {
     return generateAuthTokens(id, "USER");
   }
@@ -87,9 +115,12 @@ class UserService {
 
   async refreshAuth(oldToken: string) {
     const decoded = await verifyRefreshToken(oldToken);
-    if (!decoded) throw new AuthError("Invalid refresh token");
+    if (!decoded) {
+      throw new AuthError("Invalid refresh token, please login again");
+    }
 
     const user = await userService.getByIdAndRefreshToken(decoded.id, oldToken);
+
     if (!user) {
       this.clearRefreshToken(decoded.id, oldToken);
       throw new AuthError("Invalid refresh token");

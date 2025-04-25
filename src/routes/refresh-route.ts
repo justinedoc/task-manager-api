@@ -26,7 +26,7 @@ app.get("/", async (c) => {
 
     logger.error(err, "Unexpected error in refresh");
     return c.json(
-      { success: false, message: "An unezpected error occured" },
+      { success: false, message: "An unexpected error occured" },
       INTERNAL_SERVER_ERROR
     );
   }

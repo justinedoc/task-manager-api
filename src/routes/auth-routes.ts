@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import userService from "@/services/user-service.js";
 import logger from "@/utils/logger.js";
-import { setRefreshCookie } from "@/configs/cookie-config.js";
+import { getRefreshCookie, setRefreshCookie } from "@/configs/cookie-config.js";
 import {
   CONFLICT,
   CREATED,
@@ -72,9 +72,11 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
   const { email, password } = c.req.valid("json");
 
   try {
-    const user = await userService.findByEmail(email);
+    const refCookie = await getRefreshCookie(c);
 
-    if (!user) throw new AuthError("Incorrect credentials");
+    if (refCookie) throw new AuthError("Already logged in", CONFLICT);
+
+    const user = await userService.findByEmail(email);
 
     const isPasswordMatch = await user.comparePassword(password);
 

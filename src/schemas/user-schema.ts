@@ -51,6 +51,19 @@ export const UserZodSchema = z.object({
     }, "Password must contain at least one letter, one number, and one special character"),
 });
 
+export const UserPasswordUpdateZodSchema = z.object({
+  oldPassword: z.string().min(8).max(50),
+  newPassword: z
+    .string()
+    .min(8)
+    .max(50)
+    .refine((val) => {
+      return (
+        /[a-zA-Z]/.test(val) && /[0-9]/.test(val) && /[!@#$%^&*]/.test(val)
+      );
+    }, "New password must contain at least one letter, one number, and one special character"),
+});
+
 // User schema for MongoDB
 export const UserSchema = new Schema<IUserDoc>(
   {
