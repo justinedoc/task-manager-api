@@ -18,6 +18,7 @@ export function createRouter() {
 
 export default function createApp() {
   const app = createRouter();
+
   app.use(serveEmojiFavicon("🔥"));
   app.use(cors({ origin: "*", credentials: true }));
   app.use(compress());
@@ -25,7 +26,7 @@ export default function createApp() {
 
   app.use("*", async (c, next) => {
     await connectToDb();
-    return next();
+    await next();
   });
 
   app.use(logger());
