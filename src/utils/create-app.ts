@@ -7,6 +7,7 @@ import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
 
 import { onError } from "@/middlewares/on-error.js";
 import { defaultHook } from "stoker/openapi";
+import { connectToDb } from "@/configs/mongodb.js";
 
 export function createRouter() {
   return new OpenAPIHono({
@@ -21,8 +22,15 @@ export default function createApp() {
   app.use(cors({ origin: "*", credentials: true }));
   app.use(compress());
   app.use(secureHeaders());
+
+  app.use("*", async (c, next) => {
+    await connectToDb();  
+    return next();
+  });
+  
   app.use(logger());
   app.onError(onError);
+
 
   return app;
 }
