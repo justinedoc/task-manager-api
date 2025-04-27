@@ -1,13 +1,9 @@
-import app from "@/app.js";
 import { connectToDb } from "@/configs/mongodb.js";
-import { handle } from "hono/vercel";
+import { handle } from "@hono/node-server/vercel";
 
+// @ts-expect-error: Importing app from a compiled JavaScript file
+
+import app from "../dist/src/app.js";
 await connectToDb();
 
-const handler = handle(app);
-
-export const GET = handler;
-export const POST = handler;
-export const PATCH = handler;
-export const PUT = handler;
-export const OPTIONS = handler;
+export default handle(app);
