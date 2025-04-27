@@ -26,6 +26,11 @@ app.route("/v1", userRoutes);
 app.route("/v1", taskRoutes);
 app.route("/v1", refreshRoute);
 
+app.doc("/doc", {
+  openapi: "3.0.0",
+  info: { title: "My App API", version: "1.0.0" },
+});
+
 app.notFound((c) => {
   return c.json({ message: `Route not found - ${c.req.path}` }, NOT_FOUND);
 });

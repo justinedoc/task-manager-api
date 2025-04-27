@@ -2,6 +2,7 @@ import { model } from "mongoose";
 import bcrypt from "bcryptjs";
 import { UserSchema } from "@/schemas/user-schema.js";
 import type { IUserDoc } from "@/types/user-type.js";
+import Task from "@/models/task-model.js";
 
 UserSchema.methods.comparePassword = async function (
   this: IUserDoc,
@@ -29,6 +30,12 @@ UserSchema.pre("save", async function (next) {
   }
 
   next();
+});
+
+UserSchema.post("findOneAndDelete", async function (deletedUser: IUserDoc) {
+  if (deletedUser) {
+    await Task.deleteMany({ user: deletedUser._id });
+  }
 });
 
 const User = model<IUserDoc>("User", UserSchema);

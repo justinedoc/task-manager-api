@@ -49,10 +49,9 @@ class UserService {
   }
 
   async deleteUser(id: string) {
-    const user = await User.findByIdAndDelete(id, {
-      new: true,
-      runValidators: true,
-    }).select("-password -refreshToken -__v");
+    const user = await User.findOneAndDelete({ _id: id }).select(
+      "-password -refreshToken -__v"
+    );
 
     if (!user)
       throw new AuthError(

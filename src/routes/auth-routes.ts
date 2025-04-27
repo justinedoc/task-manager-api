@@ -2,7 +2,11 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import userService from "@/services/user-service.js";
 import logger from "@/utils/logger.js";
-import { getRefreshCookie, setRefreshCookie } from "@/configs/cookie-config.js";
+import {
+  deleteRefreshCookie,
+  getRefreshCookie,
+  setRefreshCookie,
+} from "@/configs/cookie-config.js";
 import {
   CONFLICT,
   CREATED,
@@ -12,6 +16,7 @@ import {
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
 import { AuthError } from "@/errors/auth-error.js";
+import { decode } from "hono/jwt";
 
 const app = new Hono().basePath("/auth");
 
@@ -113,6 +118,30 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
     logger.error(error, "Unexpected error in refresh");
     return c.json(
       { success: false, message: "An Unexpected error occured" },
+      INTERNAL_SERVER_ERROR
+    );
+  }
+});
+
+app.post("/logout", async (c) => {
+  try {
+    const refreshToken = await getRefreshCookie(c);
+
+    if (refreshToken) {
+      const {
+        payload: { id },
+      } = decode(refreshToken);
+
+      await userService.clearRefreshToken(String(id), refreshToken);
+    }
+
+    deleteRefreshCookie(c);
+    logger.info(`User logged out`);
+    return c.json({ success: true, message: "Logout successful" }, OK);
+  } catch (err) {
+    logger.error(err, "Error during logout");
+    return c.json(
+      { success: false, message: "Logout failed" },
       INTERNAL_SERVER_ERROR
     );
   }

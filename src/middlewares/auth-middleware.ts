@@ -2,8 +2,14 @@ import type { Context, Next } from "hono";
 import { verifyAccessToken } from "@/utils/token-utils.js";
 import logger from "@/utils/logger.js";
 import { JwtTokenExpired } from "hono/utils/jwt/types";
-import { INTERNAL_SERVER_ERROR, UNAUTHORIZED } from "stoker/http-status-codes";
+import {
+  FORBIDDEN,
+  INTERNAL_SERVER_ERROR,
+  UNAUTHORIZED,
+} from "stoker/http-status-codes";
 import type { Roles } from "@/utils/role-utils.js";
+import { model } from "mongoose";
+import { AuthError } from "@/errors/auth-error.js";
 
 export async function authMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header("Authorization");
@@ -19,6 +25,17 @@ export async function authMiddleware(c: Context, next: Next) {
 
   try {
     const decodedAccessToken = await verifyAccessToken(accessToken);
+
+    if (!decodedAccessToken) throw new AuthError("Invalid - Token");
+
+    const role =
+      decodedAccessToken.role.charAt(0) +
+      decodedAccessToken.role.slice(1).toLowerCase();
+
+    if (!(await model(role).exists({ _id: decodedAccessToken.id }))) {
+      throw new AuthError("User does not exist", FORBIDDEN);
+    }
+
     c.set("user", decodedAccessToken);
     logger.info("Access token verified successfully");
     await next();
@@ -31,7 +48,19 @@ export async function authMiddleware(c: Context, next: Next) {
       );
     }
 
+    if (err instanceof AuthError) {
+      logger.warn(err.message);
+      return c.json(
+        {
+          success: false,
+          message: err.message,
+        },
+        err.status
+      );
+    }
+
     logger.error("Token verification failed:", err);
+
     return c.json(
       {
         success: false,
