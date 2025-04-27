@@ -16,6 +16,21 @@ UserSchema.methods.getFullname = async function (
   return `${this.firstname} ${this.lastname}`;
 };
 
+UserSchema.pre("save", async function (next) {
+  if (!this.username && this.email) {
+    const base = this.email.split("@")[0];
+    let candidate = base;
+    let count = 1;
+
+    while (await model<IUserDoc>("student").exists({ username: candidate })) {
+      candidate = `${base}${count++}`;
+    }
+    this.username = candidate;
+  }
+
+  next();
+});
+
 const User = model<IUserDoc>("User", UserSchema);
 
 export default User;

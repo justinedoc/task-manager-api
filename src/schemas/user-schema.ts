@@ -36,7 +36,7 @@ export const UpdateUserZodSchema = z.object({
 export const UserZodSchema = z.object({
   firstname: z.string().min(1).max(50),
   lastname: z.string().min(1).max(50),
-  username: z.string().min(1).max(50),
+  username: z.string().max(50).optional(),
   email: z.string().email("Invalid email"),
   refreshToken: z.array(z.string()).optional(),
   profileImg: z.string().optional(),
@@ -69,7 +69,7 @@ export const UserSchema = new Schema<IUserDoc>(
   {
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
-    username: { type: String, required: true },
+    username: String,
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     tasks: [{ type: Schema.Types.ObjectId, ref: "Task", default: [] }],
