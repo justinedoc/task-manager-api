@@ -11,7 +11,14 @@ const serverConfig = {
   port: ENV.PORT,
 };
 
-serve(serverConfig, async (info) => {
-  pino.default.info(`✅ Server is running on http://localhost:${info.port}`);
+async function bootstrap() {
   await connectToDb();
+  serve(serverConfig, (info) => {
+    pino.default.info(`✅ Server is running on http://localhost:${info.port}`);
+  });
+}
+
+bootstrap().catch((err) => {
+  pino.default.error("🔴 Failed to start server:", err);
+  process.exit(1);
 });
