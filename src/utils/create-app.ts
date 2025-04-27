@@ -24,13 +24,12 @@ export default function createApp() {
   app.use(secureHeaders());
 
   app.use("*", async (c, next) => {
-    await connectToDb();  
+    await connectToDb();
     return next();
   });
-  
+
   app.use(logger());
   app.onError(onError);
-
 
   return app;
 }
