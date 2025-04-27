@@ -1,22 +1,35 @@
-import { Hono } from "hono";
+import createApp from "@/utils/create-app.js";
+
+import authRoutes from "@/routes/auth-routes.js";
+import userRoutes from "@/routes/user-routes.js";
+import taskRoutes from "@/routes/task-routes.js";
+import refreshRoute from "@/routes/refresh-route.js";
+
+import { NOT_FOUND, OK } from "stoker/http-status-codes";
 import "dotenv/config";
-import { ENV } from "@/configs/env-config.js";
-import * as pino from "@/utils/logger.js";
-import { connectToDb } from "@/configs/mongodb.js";
-import { serve } from "@hono/node-server";
 
-const app = new Hono({
-  strict: false,
-}).basePath("/api");
+const app = createApp();
 
-const serverConfig = {
-  fetch: app.fetch,
-  port: ENV.PORT,
-};
-
-serve(serverConfig, async (info) => {
-  pino.default.info(`✅ Server is running on http://localhost:${info.port}`);
-  await connectToDb();
+app.get(`/health-check`, (c) => {
+  return c.json(
+    {
+      status: "OK",
+      uptime: process.uptime(),
+      message: "Server is running",
+    },
+    OK
+  );
 });
+
+app.route("/v1", authRoutes);
+app.route("/v1", userRoutes);
+app.route("/v1", taskRoutes);
+app.route("/v1", refreshRoute);
+
+app.notFound((c) => {
+  return c.json({ message: `Route not found - ${c.req.path}` }, NOT_FOUND);
+});
+
+export type AppType = typeof app;
 
 export default app;
