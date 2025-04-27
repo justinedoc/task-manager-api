@@ -10,7 +10,7 @@ import "dotenv/config";
 
 const app = createApp();
 
-app.get(`/health-check`, (c) => {
+app.get(`/health`, (c) => {
   return c.json(
     {
       status: "OK",
