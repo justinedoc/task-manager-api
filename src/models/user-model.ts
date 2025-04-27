@@ -22,7 +22,7 @@ UserSchema.pre("save", async function (next) {
     let candidate = base;
     let count = 1;
 
-    while (await model<IUserDoc>("student").exists({ username: candidate })) {
+    while (await model<IUserDoc>("User").exists({ username: candidate })) {
       candidate = `${base}${count++}`;
     }
     this.username = candidate;
