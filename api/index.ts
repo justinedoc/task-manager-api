@@ -1,4 +1,4 @@
-import { connectToDb } from "@/configs/mongodb.js";
+import { connectToDb } from "../src/configs/mongodb.js";
 import { handle } from "@hono/node-server/vercel";
 
 // @ts-expect-error: Importing app from a compiled JavaScript file
