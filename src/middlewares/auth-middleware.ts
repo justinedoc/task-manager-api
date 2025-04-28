@@ -2,11 +2,7 @@ import type { Context, Next } from "hono";
 import { verifyAccessToken } from "@/utils/token-utils.js";
 import logger from "@/utils/logger.js";
 import { JwtTokenExpired } from "hono/utils/jwt/types";
-import {
-  FORBIDDEN,
-  INTERNAL_SERVER_ERROR,
-  UNAUTHORIZED,
-} from "stoker/http-status-codes";
+import { FORBIDDEN, UNAUTHORIZED } from "stoker/http-status-codes";
 import type { Roles } from "@/utils/role-utils.js";
 import { model } from "mongoose";
 import { AuthError } from "@/errors/auth-error.js";
@@ -15,12 +11,9 @@ export async function authMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header("Authorization");
 
   if (!authHeader?.startsWith("Bearer ")) {
-    return c.json(
-      { success: false, message: "Invalid Authorization Header" },
-      403
-    );
+    throw new AuthError("Invalid Authorization Header", FORBIDDEN);
   }
-
+  
   const accessToken = authHeader.split(" ")[1];
 
   try {
@@ -33,7 +26,10 @@ export async function authMiddleware(c: Context, next: Next) {
       decodedAccessToken.role.slice(1).toLowerCase();
 
     if (!(await model(role).exists({ _id: decodedAccessToken.id }))) {
-      throw new AuthError("User does not exist", FORBIDDEN);
+      throw new AuthError(
+        "You are forbidden to perform this action",
+        FORBIDDEN
+      );
     }
 
     c.set("user", decodedAccessToken);
@@ -48,27 +44,7 @@ export async function authMiddleware(c: Context, next: Next) {
       );
     }
 
-    if (err instanceof AuthError) {
-      logger.warn(err.message);
-      return c.json(
-        {
-          success: false,
-          message: err.message,
-        },
-        err.status
-      );
-    }
-
-    logger.error("Token verification failed:", err);
-
-    return c.json(
-      {
-        success: false,
-        message: "Authentication failed",
-        error: err instanceof Error && err.message,
-      },
-      INTERNAL_SERVER_ERROR
-    );
+    throw err;
   }
 }
 

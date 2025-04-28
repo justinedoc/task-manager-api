@@ -29,6 +29,9 @@ importers:
       hono-pino:
         specifier: ^0.8.0
         version: 0.8.0(hono@4.7.7)(pino@9.6.0)
+      hono-rate-limiter:
+        specifier: ^0.4.2
+        version: 0.4.2(hono@4.7.7)
       mongoose:
         specifier: ^8.14.0
         version: 8.14.0
@@ -656,6 +659,11 @@ packages:
     peerDependencies:
       hono: '>=4.0.0'
       pino: '>=7.1.0'
+
+  hono-rate-limiter@0.4.2:
+    resolution: {integrity: sha512-AAtFqgADyrmbDijcRTT/HJfwqfvhalya2Zo+MgfdrMPas3zSMD8SU03cv+ZsYwRU1swv7zgVt0shwN059yzhjw==}
+    peerDependencies:
+      hono: ^4.1.1
 
   hono@4.7.7:
     resolution: {integrity: sha512-2PCpQRbN87Crty8/L/7akZN3UyZIAopSoRxCwRbJgUuV1+MHNFHzYFxZTg4v/03cXUm+jce/qa2VSBZpKBm3Qw==}
@@ -1611,6 +1619,10 @@ snapshots:
       defu: 6.1.4
       hono: 4.7.7
       pino: 9.6.0
+
+  hono-rate-limiter@0.4.2(hono@4.7.7):
+    dependencies:
+      hono: 4.7.7
 
   hono@4.7.7: {}
 

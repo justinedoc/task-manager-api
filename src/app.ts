@@ -8,7 +8,7 @@ import refreshRoute from "@/routes/refresh-route.js";
 import { NOT_FOUND, OK } from "stoker/http-status-codes";
 import "dotenv/config";
 
-const app = createApp();
+const app = await createApp();
 
 app.get(`/health`, (c) => {
   return c.json(

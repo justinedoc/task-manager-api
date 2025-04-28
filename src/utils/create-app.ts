@@ -3,6 +3,8 @@ import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
+import { prettyJSON as pretty } from "hono/pretty-json";
+import { rateLimiter } from "hono-rate-limiter";
 import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
 
 import { onError } from "@/middlewares/on-error.js";
@@ -16,20 +18,38 @@ export function createRouter() {
   }).basePath("/api");
 }
 
-export default function createApp() {
+export default async function createApp() {
+  await connectToDb();
   const app = createRouter();
 
   app.use(serveEmojiFavicon("🔥"));
+
+  app.use(
+    rateLimiter({
+      windowMs: 15 * 60 * 1000,
+      limit: 100,
+      standardHeaders: "draft-7",
+      keyGenerator: (c) =>
+        c.req.header("CF-Connecting-IP") ||
+        c.req.header("X-Forwarded-For") ||
+        "unknown",
+      handler: (c, next, options) => {
+        c.status(429);
+        c.header("Retry-After", Math.ceil(options.windowMs / 1000).toString());
+        return c.json({
+          success: false,
+          message: "Too many requests. Please try again later.",
+        });
+      },
+    })
+  );
+
   app.use(cors({ origin: "*", credentials: true }));
   app.use(compress());
   app.use(secureHeaders());
-
-  app.use("*", async (c, next) => {
-    await connectToDb();
-    await next();
-  });
-
+  app.use(pretty());
   app.use(logger());
+
   app.onError(onError);
 
   return app;

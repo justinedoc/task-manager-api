@@ -1,6 +1,6 @@
+import { AuthError } from "@/errors/auth-error.js";
 import type { AppBindings } from "@/types/hono-types.js";
 import type { Context, Next } from "hono";
-import { UNAUTHORIZED } from "stoker/http-status-codes";
 
 export const adminProtected = async (
   c: Context<{ Variables: AppBindings["Variables"] }>,
@@ -8,15 +8,7 @@ export const adminProtected = async (
 ) => {
   const user = c.get("user");
 
-  if (user.role !== "ADMIN") {
-    return c.json(
-      {
-        success: false,
-        message: "Unauthorized",
-      },
-      UNAUTHORIZED
-    );
-  }
+  if (user.role !== "ADMIN") throw new AuthError("UNAUTHORIZED")
 
   await next();
 };
