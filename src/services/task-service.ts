@@ -28,11 +28,19 @@ class TaskService {
     return task;
   }
 
-  async updateTask(taskDetails: Partial<TNewTask>, taskId: string) {
-    const task = await Task.findByIdAndUpdate(taskId, taskDetails, {
-      new: true,
-      runValidators: true,
-    }).lean<ITaskLean>();
+  async updateTask(
+    taskDetails: Partial<TNewTask>,
+    taskId: string,
+    userId: string
+  ) {
+    const task = await Task.findOneAndUpdate(
+      { _id: taskId, user: userId },
+      taskDetails,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).lean<ITaskLean>();
 
     if (!task) throw new TaskError("Failed to update task", BAD_REQUEST);
 

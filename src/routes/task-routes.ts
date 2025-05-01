@@ -93,7 +93,7 @@ app.patch(
     const { taskId } = c.req.valid("param");
     const taskDetails = c.req.valid("json");
 
-    const task = await taskService.updateTask(taskDetails, taskId);
+    const task = await taskService.updateTask(taskDetails, taskId, userId);
 
     wildCardDelCacheKey(TASKS_CACHE_PREFIX(userId.toString()));
     wildCardDelCacheKey(TASK_CACHE_PREFIX);

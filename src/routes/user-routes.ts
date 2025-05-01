@@ -80,11 +80,11 @@ app.patch(
 app.patch(
   "/:id",
   zValidator("param", UpdateUserZodSchema.pick({ id: true })),
-  zValidator("json", UpdateUserZodSchema.omit({ id: true })),
+  zValidator("json", UpdateUserZodSchema.shape.data),
   async (c) => {
     const { id: userId, role } = c.get("user");
     const { id } = c.req.valid("param");
-    const { data } = c.req.valid("json");
+    const data  = c.req.valid("json");
 
     if (!isSelfOrAdmin({ userId, id, role })) {
       throw new AuthError(unauthorizedRes.message, FORBIDDEN);

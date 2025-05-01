@@ -3,8 +3,7 @@ import { verifyAccessToken } from "@/utils/token-utils.js";
 import logger from "@/utils/logger.js";
 import { JwtTokenExpired } from "hono/utils/jwt/types";
 import { FORBIDDEN, UNAUTHORIZED } from "stoker/http-status-codes";
-import type { Roles } from "@/utils/role-utils.js";
-import { model } from "mongoose";
+import { roleModelMap, type Roles } from "@/utils/role-utils.js";
 import { AuthError } from "@/errors/auth-error.js";
 
 export async function authMiddleware(c: Context, next: Next) {
@@ -13,7 +12,7 @@ export async function authMiddleware(c: Context, next: Next) {
   if (!authHeader?.startsWith("Bearer ")) {
     throw new AuthError("Invalid Authorization Header", FORBIDDEN);
   }
-  
+
   const accessToken = authHeader.split(" ")[1];
 
   try {
@@ -21,16 +20,13 @@ export async function authMiddleware(c: Context, next: Next) {
 
     if (!decodedAccessToken) throw new AuthError("Invalid - Token");
 
-    const role =
-      decodedAccessToken.role.charAt(0) +
-      decodedAccessToken.role.slice(1).toLowerCase();
+    const key = decodedAccessToken.role as keyof typeof roleModelMap;
 
-    if (!(await model(role).exists({ _id: decodedAccessToken.id }))) {
-      throw new AuthError(
-        "You are forbidden to perform this action",
-        FORBIDDEN
-      );
-    }
+    const Model = roleModelMap[key];
+    if (!Model) throw new AuthError("Unknown Role", FORBIDDEN);
+
+    const exists = await Model.exists({ _id: decodedAccessToken.id });
+    if (!exists) throw new AuthError("Forbidden", FORBIDDEN);
 
     c.set("user", decodedAccessToken);
     logger.info("Access token verified successfully");
