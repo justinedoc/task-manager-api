@@ -118,18 +118,18 @@ class UserService {
       throw new AuthError("Invalid refresh token, please login again");
     }
 
-    const user = await userService.getByIdAndRefreshToken(decoded.id, oldToken);
+    const user = await this.getByIdAndRefreshToken(decoded.id, oldToken);
 
     if (!user) {
       this.clearRefreshToken(decoded.id, oldToken);
       throw new AuthError("Invalid refresh token");
     }
 
-    const { accessToken, refreshToken } = await userService.getAuthTokens(
+    const { accessToken, refreshToken } = await this.getAuthTokens(
       user._id
     );
 
-    await userService.updateRefreshToken(user._id, refreshToken);
+    await this.updateRefreshToken(user._id, refreshToken);
 
     return { accessToken, refreshToken };
   }
