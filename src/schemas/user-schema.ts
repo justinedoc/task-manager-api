@@ -34,6 +34,7 @@ export const UpdateUserZodSchema = z.object({
 });
 
 export const UserZodSchema = z.object({
+  role: z.enum(["USER"]).default("USER"),
   firstname: z.string().min(1).max(50),
   lastname: z.string().min(1).max(50),
   username: z.string().max(50).optional(),
@@ -67,6 +68,7 @@ export const UserPasswordUpdateZodSchema = z.object({
 // User schema for MongoDB
 export const UserSchema = new Schema<IUserDoc>(
   {
+    role: { type: String, default: "USER" },
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
     username: String,
