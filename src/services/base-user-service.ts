@@ -27,7 +27,7 @@ export class BaseUserService {
   async findByEmail(email: string) {
     const user = await this.model
       .findOne({ email })
-      .select("-refreshToken -__v);
+      .select("-refreshToken -__v");
     if (!user) throw new AuthError("Incorrect credentials");
     return user;
   }
