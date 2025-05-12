@@ -1,5 +1,6 @@
 import createApp from "@/utils/create-app.js";
 
+import adminRoutes from "@/routes/admin-routes.js";
 import authRoutes from "@/routes/auth-routes.js";
 import userRoutes from "@/routes/user-routes.js";
 import taskRoutes from "@/routes/task-routes.js";
@@ -21,6 +22,7 @@ app.get(`/health`, (c) => {
   );
 });
 
+app.route("/v1", adminRoutes);
 app.route("/v1", authRoutes);
 app.route("/v1", userRoutes);
 app.route("/v1", taskRoutes);
