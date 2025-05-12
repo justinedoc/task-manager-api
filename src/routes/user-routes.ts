@@ -39,7 +39,7 @@ app.get("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
 
   const user = await getCacheOrFetch(
     cacheKey,
-    async () => await userService.getById(userId)
+    async () => await userService.findById(userId)
   );
 
   return c.json(
@@ -60,7 +60,7 @@ app.patch(
     const { id: userId } = c.get("user");
     const { newPassword, oldPassword } = c.req.valid("json");
 
-    await userService.resetPasswordWithOldPassword(userId, oldPassword);
+    await userService.canResetPassword(userId, oldPassword);
 
     const hashedPassword = await userService.hashPassword(newPassword);
     const user = await userService.updatePassword(userId, hashedPassword);
@@ -90,7 +90,7 @@ app.patch(
       throw new AuthError(unauthorizedRes.message, FORBIDDEN);
     }
 
-    const user = await userService.getByIdAndUpdate(id, data);
+    const user = await userService.update(id, data);
 
     wildCardDelCacheKey(USER_CACHE_PREFIX);
 
@@ -113,7 +113,7 @@ app.delete("/:id", zValidator("param", GetUserByIdZodSchema), async (c) => {
     throw new AuthError(unauthorizedRes.message, FORBIDDEN);
   }
 
-  const user = await userService.deleteUser(id);
+  const user = await userService.delete(id);
 
   deleteRefreshCookie(c);
 

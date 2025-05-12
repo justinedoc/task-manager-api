@@ -7,10 +7,10 @@ import bcrypt from "bcryptjs";
 import type { Types } from "mongoose";
 import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";
 
-const excludePrivateFields = "-refreshToken -comparePassword -password -__v";
+export const excludePrivateFields = "-refreshToken -comparePassword -password -__v";
 
 export class BaseUserService {
-  private model: ReturnType<typeof selectModel>;
+  readonly model: ReturnType<typeof selectModel>;
   public role: Roles;
 
   constructor(role: Roles) {

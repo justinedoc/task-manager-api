@@ -1,6 +1,7 @@
+import type { IAdminLean } from "@/types/admin-types.js";
 import type { IUserLean } from "@/types/user-type.js";
 
-export function formatAuthSuccessResponse(message: string, data: IUserLean) {
+export function formatAuthSuccessResponse(message: string, data: IUserLean | IAdminLean) {
   return {
     success: true,
     message,

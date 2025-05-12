@@ -1,47 +1,33 @@
-import User from "@/models/user-model.js";
 import type { IUserLean } from "@/types/user-type.js";
-import { AuthError } from "@/errors/auth-error.js";
-import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";
+import { BaseUserService } from "@/services/base-user-service.js";
+import type { Roles } from "@/utils/role-utils.js";
+import { BaseUserCrud } from "@/services/base-crud-service.js";
 
 type IncomingUser = Omit<
   IUserLean,
   "comparePassword" | "getFullname" | "_id" | "tasks" | "refreshToken"
 >;
-class UserService {
+class UserService extends BaseUserService {
+  private crud: BaseUserCrud;
+
+  constructor(role: Roles) {
+    super(role);
+    this.crud = new BaseUserCrud(this.model);
+  }
+
   async create(userDetails: IncomingUser) {
-    return User.create(userDetails);
+    return this.crud.create(userDetails);
   }
 
-  async exists(email: string) {
-    return User.exists({ email });
+  async update(id: string, userDetails: Partial<IncomingUser>) {
+    return this.crud.update(id, userDetails);
   }
 
-  async getByIdAndUpdate(id: string, userDetails: Partial<IncomingUser>) {
-    const user = await User.findByIdAndUpdate(id, userDetails, {
-      new: true,
-      runValidators: true,
-    }).select("-password -refreshToken -__v");
-
-    if (!user) throw new AuthError("User not found", NOT_FOUND);
-
-    return user;
-  }
-
-  async deleteUser(id: string) {
-    const user = await User.findOneAndDelete({ _id: id }).select(
-      "-password -refreshToken -__v"
-    );
-
-    if (!user)
-      throw new AuthError(
-        "User not found or user already deleted",
-        BAD_REQUEST
-      );
-
-    return user;
+  async delete(id: string) {
+    return this.crud.delete(id);
   }
 }
 
-const userService = new UserService();
+const userService = new UserService("USER");
 
 export default userService;
