@@ -5,7 +5,7 @@ import type { Roles } from "@/utils/role-utils.js";
 
 type IncomingAdmin = Omit<
   IAdminLean,
-  "comparePassword" | "_id" | "tasks" | "refreshToken"
+  "comparePassword" | "_id" | "tasks" | "refreshToken" | "getFullname" | "role"
 >;
 
 class AdminService extends BaseUserService {

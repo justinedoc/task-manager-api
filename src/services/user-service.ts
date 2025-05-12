@@ -5,7 +5,7 @@ import { BaseUserCrud } from "@/services/base-crud-service.js";
 
 type IncomingUser = Omit<
   IUserLean,
-  "comparePassword" | "getFullname" | "_id" | "tasks" | "refreshToken"
+  "comparePassword" | "getFullname" | "_id" | "tasks" | "refreshToken" | "role"
 >;
 class UserService extends BaseUserService {
   private crud: BaseUserCrud;

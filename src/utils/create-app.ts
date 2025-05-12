@@ -10,6 +10,7 @@ import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
 import { onError } from "@/middlewares/on-error.js";
 import { defaultHook } from "stoker/openapi";
 import { connectToDb } from "@/configs/mongodb.js";
+import { createSuperAdmin } from "@/utils/super-admin.js";
 
 export function createRouter() {
   return new OpenAPIHono({
@@ -20,6 +21,7 @@ export function createRouter() {
 
 export default async function createApp() {
   await connectToDb();
+  await createSuperAdmin();
   const app = createRouter();
 
   app.use(serveEmojiFavicon("🔥"));
