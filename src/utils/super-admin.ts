@@ -18,7 +18,12 @@ export async function createSuperAdmin() {
       return;
     }
 
-    const superadmin = await adminService.create(adminData);
+    const hashedPassword = await adminService.hashPassword(adminData.password);
+
+    const superadmin = await adminService.create({
+        ...adminData, 
+        password: hashedPassword,
+    });
 
     console.log("Admin created successfully: \n");
     console.log("----------------------------------");
