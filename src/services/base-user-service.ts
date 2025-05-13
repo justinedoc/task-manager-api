@@ -45,7 +45,10 @@ export class BaseUserService {
     return bcrypt.hash(password, SALT_ROUNDS);
   }
 
-  async updatePassword(id: string, hashedPassword: string) {
+  async updatePassword(id: string, newPassword: string) {
+
+const hashedPassword = await this.hashPassword(newPassword);
+
     const user = await this.model
       .findByIdAndUpdate(
         id,
