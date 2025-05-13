@@ -94,7 +94,7 @@ export class BaseUserService {
   }
 
   async clearRefreshToken(userId: string, refreshToken: string) {
-    return this.model.findByIdAndUpdate(userId, { $unset: { refreshToken } });
+    return this.model.findByIdAndUpdate(userId, { $pull: { refreshToken } });
   }
 
   // refresh token func
