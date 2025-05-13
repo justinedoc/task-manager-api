@@ -114,6 +114,8 @@ export class BaseUserService {
 
     const { accessToken, refreshToken } = await this.getAuthTokens(user._id);
 
+await this.clearRefreshToken(user._id.toString(), oldToken);
+
     await this.updateRefreshToken(user._id, refreshToken);
 
     return { accessToken, refreshToken };
