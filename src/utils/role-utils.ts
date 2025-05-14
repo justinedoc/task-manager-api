@@ -17,8 +17,6 @@ export const roleModelMap: RoleConfig<Roles, AllModels> = {
   ADMIN: Admin,
 };
 
-export function selectModel<R extends Roles>(
-  role: R
-): typeof roleModelMap[R] {
-  return roleModelMap[role];
+export function selectModel<R extends Roles>(role: R): Model<Extract<AllModels, { role: R }>> {
+  return roleModelMap[role] as Model<Extract<AllModels, { role: R }>>;
 }
