@@ -18,4 +18,4 @@ export const roleModelMap: RoleConfig<Roles, AllModels> = {
 };
 
 export const selectModel = (role: Roles) =>
-  roleModelMap[role] as Model<AllModels>;
+  roleModelMap[role];
