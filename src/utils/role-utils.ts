@@ -20,5 +20,5 @@ export const roleModelMap: RoleConfig<Roles, AllModels> = {
 export function selectModel<R extends Roles>(
   role: R
 ): RoleConfig<Roles, AllModels>[R] {
-  return roleModelMap[role];
+  return roleModelMap[role] as RoleConfig<Roles, AllModels>[R];
 }
