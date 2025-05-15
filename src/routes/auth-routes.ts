@@ -101,8 +101,6 @@ app.post("/logout", async (c) => {
   if (refreshToken) {
     const user = await userService.getByRefreshToken(refreshToken);
 
-    console.log(user);
-
     if (user) {
       await userService.clearRefreshToken(user._id.toString(), refreshToken);
     }
