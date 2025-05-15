@@ -60,9 +60,11 @@ app.patch(
     const { id: userId } = c.get("user");
     const { newPassword, oldPassword } = c.req.valid("json");
 
-    await userService.canResetPassword(userId, oldPassword);
-
-    const user = await userService.updatePassword(userId, newPassword);
+    const user = await userService.updatePassword(
+      userId,
+      newPassword,
+      oldPassword
+    );
 
     return c.json(
       {
@@ -83,7 +85,7 @@ app.patch(
   async (c) => {
     const { id: userId, role } = c.get("user");
     const { id } = c.req.valid("param");
-    const data  = c.req.valid("json");
+    const data = c.req.valid("json");
 
     if (!isSelfOrAdmin({ userId, id, role })) {
       throw new AuthError(unauthorizedRes.message, FORBIDDEN);

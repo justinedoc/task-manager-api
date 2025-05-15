@@ -11,7 +11,6 @@ import { CONFLICT, CREATED, OK } from "stoker/http-status-codes";
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
 import { AuthError } from "@/errors/auth-error.js";
-import { decode } from "hono/jwt";
 
 const app = new Hono().basePath("/auth");
 
@@ -100,11 +99,13 @@ app.post("/logout", async (c) => {
   const refreshToken = await getRefreshCookie(c);
 
   if (refreshToken) {
-    const {
-      payload: { id },
-    } = decode(refreshToken);
+    const user = await userService.getByRefreshToken(refreshToken);
 
-    await userService.clearRefreshToken(String(id), refreshToken);
+    console.log(user);
+
+    if (user) {
+      await userService.clearRefreshToken(user._id.toString(), refreshToken);
+    }
   }
 
   deleteRefreshCookie(c);
