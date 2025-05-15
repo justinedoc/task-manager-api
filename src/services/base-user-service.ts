@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs";
 import type { Types } from "mongoose";
 import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";
 
-export const excludePrivateFields = "-refreshToken -comparePassword -password -__v";
+export const excludePrivateFields =
+  "-refreshToken -comparePassword -password -__v";
 
 export class BaseUserService {
   readonly model: ReturnType<typeof selectModel>;
@@ -46,8 +47,7 @@ export class BaseUserService {
   }
 
   async updatePassword(id: string, newPassword: string) {
-
-const hashedPassword = await this.hashPassword(newPassword);
+    const hashedPassword = await this.hashPassword(newPassword);
 
     const user = await this.model
       .findByIdAndUpdate(
@@ -117,7 +117,7 @@ const hashedPassword = await this.hashPassword(newPassword);
 
     const { accessToken, refreshToken } = await this.getAuthTokens(user._id);
 
-await this.clearRefreshToken(user._id.toString(), oldToken);
+    await this.clearRefreshToken(user._id.toString(), oldToken);
 
     await this.updateRefreshToken(user._id, refreshToken);
 

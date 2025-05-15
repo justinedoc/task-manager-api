@@ -8,6 +8,8 @@ export type Roles = "USER" | "ADMIN";
 
 type AllModels = IUserDoc | IAdminDoc;
 
+type ModelSelect<T> = Model<Extract<AllModels, { role: T }>>;
+
 export type RoleConfig<T extends string, K> = {
   [P in T]: Model<Extract<K, { role: P }>>;
 };
@@ -17,6 +19,6 @@ export const roleModelMap: RoleConfig<Roles, AllModels> = {
   ADMIN: Admin,
 };
 
-export function selectModel<R extends Roles>(role: R): Model<Extract<AllModels, { role: R }>> {
-  return roleModelMap[role] as Model<Extract<AllModels, { role: R }>>;
+export function selectModel<R extends Roles>(role: R): ModelSelect<R> {
+  return roleModelMap[role] as ModelSelect<R>;
 }
