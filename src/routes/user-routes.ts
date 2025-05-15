@@ -62,8 +62,7 @@ app.patch(
 
     await userService.canResetPassword(userId, oldPassword);
 
-    const hashedPassword = await userService.hashPassword(newPassword);
-    const user = await userService.updatePassword(userId, hashedPassword);
+    const user = await userService.updatePassword(userId, newPassword);
 
     return c.json(
       {

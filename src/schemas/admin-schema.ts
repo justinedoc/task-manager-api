@@ -23,7 +23,7 @@ export const AdminZodSchema = z.object({
 
 export const AdminSchema = new Schema<IAdminDoc>(
   {
-    role: { type: String, default: "ADMIN" },
+    role: { type: String, required: true, enum: ["ADMIN"], default: "ADMIN" },
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
     username: String,

@@ -27,7 +27,7 @@ export class BaseUserService {
   async findByEmail(email: string) {
     const user = await this.model
       .findOne({ email })
-      .select(excludePrivateFields);
+      .select("-refreshToken -__v");
     if (!user) throw new AuthError("Incorrect credentials");
     return user;
   }
@@ -45,7 +45,10 @@ export class BaseUserService {
     return bcrypt.hash(password, SALT_ROUNDS);
   }
 
-  async updatePassword(id: string, hashedPassword: string) {
+  async updatePassword(id: string, newPassword: string) {
+
+const hashedPassword = await this.hashPassword(newPassword);
+
     const user = await this.model
       .findByIdAndUpdate(
         id,
@@ -94,7 +97,7 @@ export class BaseUserService {
   }
 
   async clearRefreshToken(userId: string, refreshToken: string) {
-    return this.model.findByIdAndUpdate(userId, { $unset: { refreshToken } });
+    return this.model.findByIdAndUpdate(userId, { $pull: { refreshToken } });
   }
 
   // refresh token func
@@ -113,6 +116,8 @@ export class BaseUserService {
     }
 
     const { accessToken, refreshToken } = await this.getAuthTokens(user._id);
+
+await this.clearRefreshToken(user._id.toString(), oldToken);
 
     await this.updateRefreshToken(user._id, refreshToken);
 
