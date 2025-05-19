@@ -5,17 +5,19 @@ import {
   getRefreshCookie,
   setRefreshCookie,
 } from "@/configs/cookie-config.js";
-import { CONFLICT, CREATED, OK } from "stoker/http-status-codes";
+import { CONFLICT, CREATED, FORBIDDEN, OK } from "stoker/http-status-codes";
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { AuthError } from "@/errors/auth-error.js";
 import { decode } from "hono/jwt";
 import { adminProtected } from "@/middlewares/admin-protected.js";
-import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { authMiddleware, isSelfOrAdmin } from "@/middlewares/auth-middleware.js";
 import adminService from "@/services/admin-services.js";
 import type { AppBindings } from "@/types/hono-types.js";
 import { Hono } from "hono";
-import { AdminZodSchema } from "@/schemas/admin-schema.js";
+import { AdminZodSchema, GetAdminByIdZodSchema } from "@/schemas/admin-schema.js";
 import { UserLoginZodSchema } from "@/schemas/user-schema.js";
+import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
+import { unauthorizedRes } from "@/routes/user-routes.js";
 
 const app = new Hono<AppBindings>().basePath("/admin");
 
@@ -127,5 +129,29 @@ app.post(
     );
   }
 );
+
+app.get("/:id", zValidator("param", GetAdminByIdZodSchema), async (c) => {
+  const { id } = c.req.valid("param");
+  const { id: userId, role } = c.get("user");
+  const cacheKey = getCacheKey("admin", { userId });
+
+  if (!isSelfOrAdmin({ userId, id, role })) {
+    throw new AuthError(unauthorizedRes.message, FORBIDDEN);
+  }
+
+  const user = await getCacheOrFetch(
+    cacheKey,
+    async () => await adminService.findById(userId)
+  );
+
+  return c.json(
+    {
+      success: true,
+      message: "Admin fetched successfully",
+      data: { user },
+    },
+    OK
+  );
+});
 
 export default app;

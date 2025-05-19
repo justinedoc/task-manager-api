@@ -18,7 +18,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { FORBIDDEN, OK } from "stoker/http-status-codes";
 
-const unauthorizedRes = {
+export const unauthorizedRes = {
   success: false,
   message: "You are not allowed to perform this action",
 };

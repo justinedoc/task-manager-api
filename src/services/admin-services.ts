@@ -8,7 +8,7 @@ type IncomingAdmin = Omit<
   "comparePassword" | "_id" | "tasks" | "refreshToken" | "getFullname" | "role"
 >;
 
-class AdminService extends BaseUserService {
+export class AdminService extends BaseUserService {
   private crud: BaseUserCrud;
 
   constructor(role: Roles) {

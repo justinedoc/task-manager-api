@@ -11,6 +11,9 @@ import { CONFLICT, CREATED, OK } from "stoker/http-status-codes";
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
 import { AuthError } from "@/errors/auth-error.js";
+import { decode } from "hono/jwt";
+import { selectService } from "@/utils/select-service.js";
+import type { Roles } from "@/utils/role-utils.js";
 
 const app = new Hono().basePath("/auth");
 
@@ -99,15 +102,19 @@ app.post("/logout", async (c) => {
   const refreshToken = await getRefreshCookie(c);
 
   if (refreshToken) {
-    const user = await userService.getByRefreshToken(refreshToken);
+    const {
+      payload: { role },
+    } = decode(refreshToken);
 
-    if (user) {
-      await userService.clearRefreshToken(user._id.toString(), refreshToken);
-    }
+    const service = selectService(role as Roles);
+    const user = await service.getByRefreshToken(refreshToken);
+
+    if (user)
+      await service.clearRefreshToken(user._id.toString(), refreshToken);
   }
 
   deleteRefreshCookie(c);
-  logger.info(`User logged out`);
+  logger.info(`A user logged out`);
   return c.json({ success: true, message: "Logout successful" }, OK);
 });
 

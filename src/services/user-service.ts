@@ -7,7 +7,7 @@ type IncomingUser = Omit<
   IUserLean,
   "comparePassword" | "getFullname" | "_id" | "tasks" | "refreshToken" | "role"
 >;
-class UserService extends BaseUserService {
+export class UserService extends BaseUserService {
   private crud: BaseUserCrud;
 
   constructor(role: Roles) {

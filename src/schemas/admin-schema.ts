@@ -1,6 +1,12 @@
 import type { IAdminDoc } from "@/types/admin-types.js";
-import { Schema } from "mongoose";
+import { isValidObjectId, Schema } from "mongoose";
 import z from "zod";
+
+export const GetAdminByIdZodSchema = z.object({
+  id: z
+    .string({ required_error: "Admin ID is required" })
+    .refine(isValidObjectId, { message: "Invalid Admin ID format" }),
+});
 
 export const AdminZodSchema = z.object({
   role: z.enum(["ADMIN"]).default("ADMIN"),
