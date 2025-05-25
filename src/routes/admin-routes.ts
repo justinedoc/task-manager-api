@@ -1,20 +1,21 @@
 import { zValidator } from "@hono/zod-validator";
 import logger from "@/utils/logger.js";
-import {
-  deleteRefreshCookie,
-  getRefreshCookie,
-  setRefreshCookie,
-} from "@/configs/cookie-config.js";
+import { getRefreshCookie, setRefreshCookie } from "@/configs/cookie-config.js";
 import { CONFLICT, CREATED, FORBIDDEN, OK } from "stoker/http-status-codes";
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { AuthError } from "@/errors/auth-error.js";
-import { decode } from "hono/jwt";
 import { adminProtected } from "@/middlewares/admin-protected.js";
-import { authMiddleware, isSelfOrAdmin } from "@/middlewares/auth-middleware.js";
+import {
+  authMiddleware,
+  isSelfOrAdmin,
+} from "@/middlewares/auth-middleware.js";
 import adminService from "@/services/admin-services.js";
 import type { AppBindings } from "@/types/hono-types.js";
 import { Hono } from "hono";
-import { AdminZodSchema, GetAdminByIdZodSchema } from "@/schemas/admin-schema.js";
+import {
+  AdminZodSchema,
+  GetAdminByIdZodSchema,
+} from "@/schemas/admin-schema.js";
 import { UserLoginZodSchema } from "@/schemas/user-schema.js";
 import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
 import { unauthorizedRes } from "@/routes/user-routes.js";
@@ -57,23 +58,6 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
     },
     OK
   );
-});
-
-// logout admins
-app.post("/logout", async (c) => {
-  const refreshToken = await getRefreshCookie(c);
-
-  if (refreshToken) {
-    const {
-      payload: { id },
-    } = decode(refreshToken);
-
-    await adminService.clearRefreshToken(String(id), refreshToken);
-  }
-
-  deleteRefreshCookie(c);
-  logger.info(`Admin logged out`);
-  return c.json({ success: true, message: "Logout successful" }, OK);
 });
 
 /* 
@@ -130,6 +114,7 @@ app.post(
   }
 );
 
+// get admin by ID
 app.get("/:id", zValidator("param", GetAdminByIdZodSchema), async (c) => {
   const { id } = c.req.valid("param");
   const { id: userId, role } = c.get("user");
@@ -153,5 +138,29 @@ app.get("/:id", zValidator("param", GetAdminByIdZodSchema), async (c) => {
     OK
   );
 });
+
+// app.patch(
+//   "/reset-password",
+//   zValidator("json", UserPasswordUpdateZodSchema),
+//   async (c) => {
+//     const { id: userId } = c.get("user");
+//     const { newPassword, oldPassword } = c.req.valid("json");
+
+//     const user = await userService.updatePassword(
+//       userId,
+//       newPassword,
+//       oldPassword
+//     );
+
+//     return c.json(
+//       {
+//         success: true,
+//         message: "Password reset successfully",
+//         data: { user },
+//       },
+//       OK
+//     );
+//   }
+// );
 
 export default app;

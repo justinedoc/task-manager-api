@@ -1,30 +1,25 @@
+import {
+  GetByIdZodSchemaFactory,
+  UpdateUserDataZodSchemaFactory,
+  UsersZodSchemaFactory,
+} from "@/schemas/schema-factory.js";
 import type { IAdminDoc } from "@/types/admin-types.js";
 import { isValidObjectId, Schema } from "mongoose";
 import z from "zod";
 
-export const GetAdminByIdZodSchema = z.object({
-  id: z
-    .string({ required_error: "Admin ID is required" })
-    .refine(isValidObjectId, { message: "Invalid Admin ID format" }),
+export const GetAdminByIdZodSchema = GetByIdZodSchemaFactory("ADMIN");
+
+const UpdateAdminDataZodSchema = UpdateUserDataZodSchemaFactory();
+
+export const UpdateAdminZodSchema = z.object({
+  id: z.string().refine(isValidObjectId, {
+    message: "Invalid user ID format",
+  }),
+  data: UpdateAdminDataZodSchema,
 });
 
-export const AdminZodSchema = z.object({
+export const AdminZodSchema = UsersZodSchemaFactory().extend({
   role: z.enum(["ADMIN"]).default("ADMIN"),
-  firstname: z.string().min(1).max(50),
-  lastname: z.string().min(1).max(50),
-  username: z.string().max(50).optional(),
-  email: z.string().email("Invalid email"),
-  refreshToken: z.array(z.string()).optional(),
-  profileImg: z.string().optional(),
-  password: z
-    .string()
-    .min(8)
-    .max(50)
-    .refine((val) => {
-      return (
-        /[a-zA-Z]/.test(val) && /[0-9]/.test(val) && /[!@#$%^&*]/.test(val)
-      );
-    }, "Password must contain at least one letter, one number, and one special character"),
 });
 
 export const AdminSchema = new Schema<IAdminDoc>(

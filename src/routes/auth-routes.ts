@@ -1,5 +1,8 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { decode } from "hono/jwt";
+import { CONFLICT, CREATED, OK } from "stoker/http-status-codes";
+
 import userService from "@/services/user-service.js";
 import logger from "@/utils/logger.js";
 import {
@@ -7,11 +10,9 @@ import {
   getRefreshCookie,
   setRefreshCookie,
 } from "@/configs/cookie-config.js";
-import { CONFLICT, CREATED, OK } from "stoker/http-status-codes";
 import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
 import { AuthError } from "@/errors/auth-error.js";
-import { decode } from "hono/jwt";
 import { selectService } from "@/utils/select-service.js";
 import type { Roles } from "@/utils/role-utils.js";
 
@@ -98,6 +99,7 @@ app.post("/login", zValidator("json", UserLoginZodSchema), async (c) => {
   );
 });
 
+// logout user
 app.post("/logout", async (c) => {
   const refreshToken = await getRefreshCookie(c);
 

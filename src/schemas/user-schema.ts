@@ -2,29 +2,22 @@ import { Schema } from "mongoose";
 import z from "zod";
 import { isValidObjectId } from "mongoose";
 import type { IUserDoc } from "@/types/user-type.js";
+import {
+  GetByIdZodSchemaFactory,
+  LoginZodSchemaFactory,
+  PasswordUpdateZodSchemaFactory,
+  UpdateUserDataZodSchemaFactory,
+  UsersZodSchemaFactory,
+} from "@/schemas/schema-factory.js";
 
 // User login schema
-export const UserLoginZodSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
+export const UserLoginZodSchema = LoginZodSchemaFactory();
 
 // Zod schema for getting user by ID
-export const GetUserByIdZodSchema = z.object({
-  id: z
-    .string({ required_error: "User ID is required" })
-    .refine(isValidObjectId, { message: "Invalid user ID format" }),
-});
+export const GetUserByIdZodSchema = GetByIdZodSchemaFactory("USER");
 
 // Zod schema for updating user data
-const UpdateUserDataZodSchema = z
-  .object({
-    firstname: z.string().min(1).max(50),
-    lastname: z.string().min(1).max(50),
-    username: z.string().min(1).max(50),
-    email: z.string().email("Invalid email"),
-  })
-  .partial();
+const UpdateUserDataZodSchema = UpdateUserDataZodSchemaFactory();
 
 export const UpdateUserZodSchema = z.object({
   id: z.string().refine(isValidObjectId, {
@@ -33,37 +26,12 @@ export const UpdateUserZodSchema = z.object({
   data: UpdateUserDataZodSchema,
 });
 
-export const UserZodSchema = z.object({
+// Zod schema for creating a user
+export const UserZodSchema = UsersZodSchemaFactory().extend({
   role: z.enum(["USER"]).default("USER"),
-  firstname: z.string().min(1).max(50),
-  lastname: z.string().min(1).max(50),
-  username: z.string().max(50).optional(),
-  email: z.string().email("Invalid email"),
-  refreshToken: z.array(z.string()).optional(),
-  profileImg: z.string().optional(),
-  password: z
-    .string()
-    .min(8)
-    .max(50)
-    .refine((val) => {
-      return (
-        /[a-zA-Z]/.test(val) && /[0-9]/.test(val) && /[!@#$%^&*]/.test(val)
-      );
-    }, "Password must contain at least one letter, one number, and one special character"),
 });
 
-export const UserPasswordUpdateZodSchema = z.object({
-  oldPassword: z.string().min(8).max(50),
-  newPassword: z
-    .string()
-    .min(8)
-    .max(50)
-    .refine((val) => {
-      return (
-        /[a-zA-Z]/.test(val) && /[0-9]/.test(val) && /[!@#$%^&*]/.test(val)
-      );
-    }, "New password must contain at least one letter, one number, and one special character"),
-});
+export const UserPasswordUpdateZodSchema = PasswordUpdateZodSchemaFactory();
 
 // User schema for MongoDB
 export const UserSchema = new Schema<IUserDoc>(
