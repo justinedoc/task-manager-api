@@ -1,8 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
-import logger from "@/utils/logger.js";
+import logger from "@/lib/logger.js";
 import { getRefreshCookie, setRefreshCookie } from "@/configs/cookie-config.js";
 import { CONFLICT, CREATED, FORBIDDEN, OK } from "stoker/http-status-codes";
-import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
+import { formatAuthSuccessResponse } from "@/lib/format-auth-res.js";
 import { AuthError } from "@/errors/auth-error.js";
 import { adminProtected } from "@/middlewares/admin-protected.js";
 import {
@@ -21,9 +21,9 @@ import {
   UserLoginZodSchema,
   UserPasswordUpdateZodSchema,
 } from "@/schemas/user-schema.js";
-import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
+import { getCacheKey, getCacheOrFetch } from "@/lib/get-cache.js";
 import { unauthorizedRes } from "@/routes/user-routes.js";
-import { wildCardDelCacheKey } from "@/utils/node-cache.js";
+import { wildCardDelCacheKey } from "@/lib/node-cache.js";
 import { ADMIN_CACHE_PREFIX } from "@/constants/cache-constants.js";
 
 const app = new Hono<AppBindings>().basePath("/admin");

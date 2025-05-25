@@ -10,7 +10,9 @@ import serveEmojiFavicon from "stoker/middlewares/serve-emoji-favicon";
 import { onError } from "@/middlewares/on-error.js";
 import { defaultHook } from "stoker/openapi";
 import { connectToDb } from "@/configs/mongodb.js";
-import { createSuperAdmin } from "@/utils/super-admin.js";
+import { createSuperAdmin } from "@/lib/super-admin.js";
+
+import "@/workers/mail-workers.js";
 
 export function createRouter() {
   return new OpenAPIHono({

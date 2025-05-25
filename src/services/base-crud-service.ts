@@ -1,6 +1,6 @@
 import { AuthError } from "@/errors/auth-error.js";
 import { excludePrivateFields } from "@/services/base-user-service.js";
-import type { selectModel } from "@/utils/role-utils.js";
+import type { selectModel } from "@/lib/role-utils.js";
 import type { IUserLean } from "@/types/user-type.js";
 import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";
 

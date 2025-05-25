@@ -1,4 +1,4 @@
-import logger from "@/utils/logger.js";
+import logger from "@/lib/logger.js";
 import dotenv from "dotenv";
 import { z } from "zod";
 
@@ -13,6 +13,13 @@ const envSchema = z.object({
   ACCESS_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
   COOKIE_SECRET: z.string(),
+  SMTP_USER: z.string(),
+  SMTP_HOST: z.string(),
+  SMTP_PASS: z.string(),
+  EMAIL_ADDR: z.string(),
+  REDIS_URL: z.string(),
+  REDIS_PORT: z.string().transform(Number),
+  REDIS_PASS: z.string(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

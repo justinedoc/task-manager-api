@@ -1,6 +1,6 @@
 import adminService, { AdminService } from "@/services/admin-services.js";
 import userService, { UserService } from "@/services/user-service.js";
-import type { Roles } from "@/utils/role-utils.js";
+import type { Roles } from "@/lib/role-utils.js";
 
 export function selectService(role: Roles) {
   let service: AdminService | UserService | null = null;

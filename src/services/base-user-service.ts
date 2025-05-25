@@ -1,8 +1,8 @@
 import { SALT_ROUNDS } from "@/constants/auth-constants.js";
 import { AuthError } from "@/errors/auth-error.js";
-import type { Roles } from "@/utils/role-utils.js";
-import { selectModel } from "@/utils/role-utils.js";
-import { generateAuthTokens, verifyRefreshToken } from "@/utils/token-utils.js";
+import type { Roles } from "@/lib/role-utils.js";
+import { selectModel } from "@/lib/role-utils.js";
+import { generateAuthTokens, verifyRefreshToken } from "@/lib/token-utils.js";
 import bcrypt from "bcryptjs";
 import type { Types } from "mongoose";
 import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";

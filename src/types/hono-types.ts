@@ -1,4 +1,4 @@
-import type { AuthPayload } from "@/utils/token-utils.js";
+import type { AuthPayload } from "@/lib/token-utils.js";
 
 export type AppBindings = {
   Variables: {

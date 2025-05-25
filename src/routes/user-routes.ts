@@ -12,8 +12,8 @@ import {
 } from "@/schemas/user-schema.js";
 import userService from "@/services/user-service.js";
 import type { AppBindings } from "@/types/hono-types.js";
-import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
-import { wildCardDelCacheKey } from "@/utils/node-cache.js";
+import { getCacheKey, getCacheOrFetch } from "@/lib/get-cache.js";
+import { wildCardDelCacheKey } from "@/lib/node-cache.js";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { FORBIDDEN, OK } from "stoker/http-status-codes";

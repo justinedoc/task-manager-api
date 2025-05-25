@@ -1,5 +1,5 @@
-import logger from "@/utils/logger.js";
-import { CACHE } from "@/utils/node-cache.js";
+import logger from "@/lib/logger.js";
+import { CACHE } from "@/lib/node-cache.js";
 
 export async function getCacheOrFetch<T>(
   key: string,

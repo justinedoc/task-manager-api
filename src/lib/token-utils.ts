@@ -1,4 +1,4 @@
-import type { Roles } from "@/utils/role-utils.js";
+import type { Roles } from "@/lib/role-utils.js";
 import type { Types } from "mongoose";
 import { sign, verify } from "hono/jwt";
 import { ENV } from "@/configs/env-config.js";

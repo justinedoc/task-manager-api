@@ -1,7 +1,7 @@
 import { ENV } from "@/configs/env-config.js";
 import { AuthError } from "@/errors/auth-error.js";
 import { TaskError } from "@/errors/task-error.js";
-import logger from "@/utils/logger.js";
+import logger from "@/lib/logger.js";
 import type { ErrorHandler } from "hono";
 import type { ContentfulStatusCode, StatusCode } from "hono/utils/http-status";
 import {

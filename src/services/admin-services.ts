@@ -1,7 +1,7 @@
 import { BaseUserCrud } from "@/services/base-crud-service.js";
 import { BaseUserService } from "@/services/base-user-service.js";
 import type { IAdminLean } from "@/types/admin-types.js";
-import type { Roles } from "@/utils/role-utils.js";
+import type { Roles } from "@/lib/role-utils.js";
 
 type IncomingAdmin = Omit<
   IAdminLean,

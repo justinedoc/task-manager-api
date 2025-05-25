@@ -1,6 +1,6 @@
 import app from "@/app.js";
 import { ENV } from "@/configs/env-config.js";
-import * as pino from "@/utils/logger.js";
+import * as pino from "@/lib/logger.js";
 
 import { serve } from "@hono/node-server";
 

@@ -4,17 +4,18 @@ import { decode } from "hono/jwt";
 import { CONFLICT, CREATED, OK } from "stoker/http-status-codes";
 
 import userService from "@/services/user-service.js";
-import logger from "@/utils/logger.js";
+import logger from "@/lib/logger.js";
 import {
   deleteRefreshCookie,
   getRefreshCookie,
   setRefreshCookie,
 } from "@/configs/cookie-config.js";
-import { formatAuthSuccessResponse } from "@/utils/format-auth-res.js";
+import { formatAuthSuccessResponse } from "@/lib/format-auth-res.js";
 import { UserLoginZodSchema, UserZodSchema } from "@/schemas/user-schema.js";
 import { AuthError } from "@/errors/auth-error.js";
-import { selectService } from "@/utils/select-service.js";
-import type { Roles } from "@/utils/role-utils.js";
+import { selectService } from "@/lib/select-service.js";
+import type { Roles } from "@/lib/role-utils.js";
+import mailScheduler from "@/services/mail-producer.js";
 
 const app = new Hono().basePath("/auth");
 
@@ -50,6 +51,12 @@ app.post(
     await setRefreshCookie(c, refreshToken);
 
     logger.info(`User ${user.firstname} has been registered`);
+
+    await mailScheduler.scheduleEmailVerification({
+      email: user.email,
+      userId: user._id.toString(),
+      username: await user.getFullname(),
+    });
 
     return c.json(
       {

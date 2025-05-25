@@ -1,4 +1,4 @@
-import createApp from "@/utils/create-app.js";
+import createApp from "@/lib/create-app.js";
 
 import adminRoutes from "@/routes/admin-routes.js";
 import authRoutes from "@/routes/auth-routes.js";

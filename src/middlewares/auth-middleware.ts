@@ -1,9 +1,9 @@
 import type { Context, Next } from "hono";
-import { verifyAccessToken } from "@/utils/token-utils.js";
-import logger from "@/utils/logger.js";
+import { verifyAccessToken } from "@/lib/token-utils.js";
+import logger from "@/lib/logger.js";
 import { JwtTokenExpired } from "hono/utils/jwt/types";
 import { FORBIDDEN, UNAUTHORIZED } from "stoker/http-status-codes";
-import { roleModelMap, type Roles } from "@/utils/role-utils.js";
+import { roleModelMap, type Roles } from "@/lib/role-utils.js";
 import { AuthError } from "@/errors/auth-error.js";
 
 export async function authMiddleware(c: Context, next: Next) {
