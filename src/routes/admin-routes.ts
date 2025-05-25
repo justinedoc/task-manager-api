@@ -15,10 +15,16 @@ import { Hono } from "hono";
 import {
   AdminZodSchema,
   GetAdminByIdZodSchema,
+  UpdateAdminZodSchema,
 } from "@/schemas/admin-schema.js";
-import { UserLoginZodSchema } from "@/schemas/user-schema.js";
+import {
+  UserLoginZodSchema,
+  UserPasswordUpdateZodSchema,
+} from "@/schemas/user-schema.js";
 import { getCacheKey, getCacheOrFetch } from "@/utils/get-cache.js";
 import { unauthorizedRes } from "@/routes/user-routes.js";
+import { wildCardDelCacheKey } from "@/utils/node-cache.js";
+import { ADMIN_CACHE_PREFIX } from "@/constants/cache-constants.js";
 
 const app = new Hono<AppBindings>().basePath("/admin");
 
@@ -139,28 +145,58 @@ app.get("/:id", zValidator("param", GetAdminByIdZodSchema), async (c) => {
   );
 });
 
-// app.patch(
-//   "/reset-password",
-//   zValidator("json", UserPasswordUpdateZodSchema),
-//   async (c) => {
-//     const { id: userId } = c.get("user");
-//     const { newPassword, oldPassword } = c.req.valid("json");
+// update admin password
+app.patch(
+  "/reset-password",
+  zValidator("json", UserPasswordUpdateZodSchema),
+  async (c) => {
+    const { id: userId } = c.get("user");
+    const { newPassword, oldPassword } = c.req.valid("json");
 
-//     const user = await userService.updatePassword(
-//       userId,
-//       newPassword,
-//       oldPassword
-//     );
+    const user = await adminService.updatePassword(
+      userId,
+      newPassword,
+      oldPassword
+    );
 
-//     return c.json(
-//       {
-//         success: true,
-//         message: "Password reset successfully",
-//         data: { user },
-//       },
-//       OK
-//     );
-//   }
-// );
+    return c.json(
+      {
+        success: true,
+        message: "Password reset successfully",
+        data: { user },
+      },
+      OK
+    );
+  }
+);
+
+// update admin
+app.patch(
+  "/:id",
+  zValidator("param", GetAdminByIdZodSchema),
+  zValidator("json", UpdateAdminZodSchema.shape.data),
+  async (c) => {
+    const { id: userId, role } = c.get("user");
+    const { id } = c.req.valid("param");
+    const data = c.req.valid("json");
+
+    if (!isSelfOrAdmin({ userId, id, role })) {
+      throw new AuthError(unauthorizedRes.message, FORBIDDEN);
+    }
+
+    const user = await adminService.update(id, data);
+
+    wildCardDelCacheKey(ADMIN_CACHE_PREFIX);
+
+    return c.json(
+      {
+        success: true,
+        message: "Update successful",
+        data: { user },
+      },
+      OK
+    );
+  }
+);
 
 export default app;
