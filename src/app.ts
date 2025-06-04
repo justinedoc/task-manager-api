@@ -5,6 +5,7 @@ import authRoutes from "@/routes/auth-routes.js";
 import userRoutes from "@/routes/user-routes.js";
 import taskRoutes from "@/routes/task-routes.js";
 import refreshRoute from "@/routes/refresh-route.js";
+import passwordRoutes from "@/routes/password-routes.js";
 
 import { NOT_FOUND, OK } from "stoker/http-status-codes";
 import "dotenv/config";
@@ -27,6 +28,7 @@ app.route("/v1", authRoutes);
 app.route("/v1", userRoutes);
 app.route("/v1", taskRoutes);
 app.route("/v1", refreshRoute);
+app.route("/v1", passwordRoutes);
 
 app.doc("/doc", {
   openapi: "3.0.0",

@@ -1,6 +1,7 @@
 import { ENV } from "@/configs/env-config.js";
 import { AuthError } from "@/errors/auth-error.js";
 import { TaskError } from "@/errors/task-error.js";
+import { handleZodError } from "@/lib/handleZodError.js";
 import logger from "@/lib/logger.js";
 import type { ErrorHandler } from "hono";
 import type { ContentfulStatusCode, StatusCode } from "hono/utils/http-status";
@@ -13,12 +14,13 @@ import { ZodError } from "zod";
 
 export const onError: ErrorHandler = (err, c) => {
   if (err instanceof ZodError) {
-    const { fieldErrors, formErrors } = err.flatten();
+    const { error, message } = handleZodError(err);
+
     return c.json(
       {
         success: false,
-        errors: fieldErrors,
-        formErrors: formErrors.length ? formErrors : undefined,
+        message: message || "Invalid request data",
+        error,
       },
       { status: BAD_REQUEST }
     );

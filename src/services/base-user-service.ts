@@ -9,6 +9,7 @@ import { BAD_REQUEST, NOT_FOUND } from "stoker/http-status-codes";
 
 export const excludePrivateFields =
   "-refreshToken -comparePassword -password -__v";
+type FindableFields = "email" | "username";
 
 export class BaseUserService {
   readonly model: ReturnType<typeof selectModel>;
@@ -24,6 +25,10 @@ export class BaseUserService {
   }
 
   // user queries
+
+  async find(field: FindableFields, value: string) {
+    return this.model.findOne({ [field]: value }).select(excludePrivateFields);
+  }
 
   async findByEmail(email: string) {
     const user = await this.model

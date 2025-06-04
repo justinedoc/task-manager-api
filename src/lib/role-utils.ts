@@ -6,7 +6,7 @@ import type { Model } from "mongoose";
 
 export type Roles = "USER" | "ADMIN";
 
-type AllModels = IUserDoc | IAdminDoc;
+export type AllModels = IUserDoc | IAdminDoc;
 
 type ModelSelect<T> = Model<Extract<AllModels, { role: T }>>;
 
